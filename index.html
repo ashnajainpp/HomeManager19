@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#FAFAF8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>HomeManager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:       #FAFAF8;
+  --white:    #FFFFFF;
+  --s1:       #F4F2EE;
+  --s2:       #ECEAE4;
+  --s3:       #DDD9D2;
+  --bd:       #E0DDD7;
+  --bd2:      #CCCAC3;
+  --accent:   #C96A2E;
+  --acc-l:    #F0E6DC;
+  --acc-d:    #A85520;
+  --green:    #2A6B45;
+  --green-l:  #D8F0E5;
+  --amber:    #7A5E10;
+  --amber-l:  #F5EDD0;
+  --red:      #AA3535;
+  --red-l:    #FADDDD;
+  --teal:     #1F6B62;
+  --teal-l:   #D5EDE9;
+  --tx:       #1A1714;
+  --tx2:      #706B65;
+  --tx3:      #A09B94;
+  --tx4:      #C8C3BC;
+  --nh:       60px;
+  --hh:       52px;
+  --ff: 'Plus Jakarta Sans', sans-serif;
+  --fd: 'Fraunces', Georgia, serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--ff); background: var(--bg); color: var(--tx); max-width: 430px; margin: 0 auto; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+::-webkit-scrollbar { display: none; }
+button, input, textarea, select { font-family: var(--ff); }
+
+/* ── AUTH ── */
+#auth { position: fixed; inset: 0; z-index: 200; background: var(--bg); }
+#auth.hidden { display: none; }
+.apage { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 52px 24px 36px; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(10px); transition: opacity .2s, transform .2s; }
+.apage.active { opacity: 1; pointer-events: all; transform: none; }
+.a-mark { display: flex; align-items: center; gap: 9px; margin-bottom: 44px; flex-shrink: 0; }
+.a-orb { width: 34px; height: 34px; border-radius: 9px; background: var(--accent); display: flex; align-items: center; justify-content: center; }
+.a-brand { font-family: var(--fd); font-size: 19px; font-weight: 700; color: var(--tx); letter-spacing: -.3px; }
+.a-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.a-foot { margin-top: auto; padding-top: 24px; flex-shrink: 0; }
+.a-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.a-h1 { font-family: var(--fd); font-size: 33px; font-weight: 700; line-height: 1.13; color: var(--tx); margin-bottom: 10px; }
+.a-h1 em { font-style: italic; color: var(--accent); }
+.a-sub { font-size: 15px; color: var(--tx2); line-height: 1.7; margin-bottom: 28px; }
+.a-link { text-align: center; font-size: 14px; color: var(--tx2); margin-top: 14px; }
+.a-link a { color: var(--accent); font-weight: 600; cursor: pointer; }
+
+/* forms */
+.fg { margin-bottom: 14px; }
+.fl { display: block; font-size: 11px; font-weight: 700; color: var(--tx2); margin-bottom: 5px; letter-spacing: .4px; text-transform: uppercase; }
+.fi { width: 100%; padding: 13px 15px; background: var(--white); border: 1.5px solid var(--bd); border-radius: 10px; color: var(--tx); font-size: 15px; outline: none; transition: border-color .16s, box-shadow .16s; -webkit-appearance: none; }
+.fi:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,106,46,.1); }
+.fi::placeholder { color: var(--tx4); }
+.fi.err { border-color: var(--red); }
+.fi-sel { width: 100%; padding: 13px 36px 13px 15px; background: var(--white); border: 1.5px solid var(--bd); border-radius: 10px; color: var(--tx); font-size: 15px; outline: none; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A09B94' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; transition: border-color .16s; }
+.fi-sel:focus { border-color: var(--accent); }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.err-txt { font-size: 12px; color: var(--red); margin-top: 4px; display: none; }
+.err-txt.show { display: block; }
+.ph-wrap { display: flex; align-items: stretch; background: var(--white); border: 1.5px solid var(--bd); border-radius: 10px; overflow: hidden; transition: border-color .16s, box-shadow .16s; }
+.ph-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,106,46,.1); }
+.ph-wrap.err { border-color: var(--red); }
+.ph-pfx { padding: 13px 13px; font-size: 13px; font-weight: 700; color: var(--tx2); border-right: 1.5px solid var(--bd); white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; }
+.ph-wrap input { flex: 1; padding: 13px 15px; background: transparent; border: none; color: var(--tx); font-size: 15px; outline: none; min-width: 0; }
+.ph-wrap input::placeholder { color: var(--tx4); }
+
+/* buttons */
+.btn { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; padding: 14px 20px; border-radius: 10px; font-size: 15px; font-weight: 700; letter-spacing: -.1px; cursor: pointer; border: none; transition: transform .12s, opacity .12s; margin-bottom: 10px; }
+.btn:active { transform: scale(.97); }
+.btn-p { background: var(--accent); color: var(--white); }
+.btn-p:active { background: var(--acc-d); }
+.btn-g { background: transparent; color: var(--tx2); border: 1.5px solid var(--bd); }
+.btn-g:active { background: var(--s1); }
+.btn-sm { padding: 9px 15px; font-size: 13px; width: auto; margin-bottom: 0; border-radius: 8px; }
+.prog { height: 3px; background: var(--s2); border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
+.prog-f { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
+.prog-lb { font-size: 12px; color: var(--tx3); font-weight: 500; }
+.feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.feat { background: var(--white); border: 1.5px solid var(--bd); border-radius: 12px; padding: 15px 13px; }
+.feat-ic { font-size: 21px; margin-bottom: 7px; }
+.feat-t { font-size: 13px; font-weight: 700; color: var(--tx); margin-bottom: 2px; }
+.feat-s { font-size: 12px; color: var(--tx3); line-height: 1.4; }
+
+/* ── APP SHELL ── */
+#app { display: none; height: 100vh; flex-direction: column; }
+#app.on { display: flex; }
+.hdr { height: var(--hh); flex-shrink: 0; display: flex; align-items: center; padding: 0 20px; gap: 0; background: rgba(250,250,248,.94); backdrop-filter: blur(20px); border-bottom: 1px solid var(--bd); }
+.hdr-brand { font-family: var(--fd); font-size: 17px; font-weight: 700; color: var(--tx); letter-spacing: -.3px; flex: 1; }
+.hdr-center { flex: 1; display: flex; justify-content: center; }
+.hdr-pill { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 6px; background: var(--s1); border: 1px solid var(--bd); font-size: 12px; font-weight: 600; color: var(--tx2); }
+.hdr-right { flex: 1; display: flex; justify-content: flex-end; align-items: center; }
+.ldot { width: 6px; height: 6px; border-radius: 50%; background: #2A6B45; flex-shrink: 0; }
+.av { width: 30px; height: 30px; border-radius: 50%; background: var(--acc-l); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--fd); font-size: 11px; font-weight: 700; color: var(--accent); cursor: pointer; flex-shrink: 0; }
+
+.screens { flex: 1; overflow: hidden; position: relative; }
+.screen { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; display: none; padding-bottom: calc(var(--nh) + 12px); -webkit-overflow-scrolling: touch; }
+.screen.on { display: block; animation: fu .22s ease; }
+.chat-sc { display: none; flex-direction: column; padding-bottom: 0; }
+.chat-sc.on { display: flex; }
+@keyframes fu { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── BOTTOM NAV (Swiggy-style) ── */
+.bnav { height: var(--nh); flex-shrink: 0; background: var(--white); border-top: 1.5px solid var(--bd); display: flex; align-items: stretch; }
+.ni { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; position: relative; transition: background .12s; -webkit-tap-highlight-color: transparent; padding-bottom: 2px; }
+.ni:active { background: var(--s1); }
+.ni-ico { display: flex; align-items: center; justify-content: center; transition: transform .18s; }
+.ni-lb { font-size: 10px; font-weight: 700; color: var(--tx3); letter-spacing: .3px; transition: color .18s; }
+.ni.on .ni-lb { color: var(--accent); }
+.ni.on .ni-ico svg path, .ni.on .ni-ico svg rect, .ni.on .ni-ico svg circle, .ni.on .ni-ico svg polyline, .ni.on .ni-ico svg line { stroke: var(--accent); }
+.ni.on .ni-ico svg .fill-accent { fill: var(--accent); stroke: none; }
+.ni.on::after { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 28px; height: 2.5px; border-radius: 0 0 3px 3px; background: var(--accent); }
+
+/* ── HOME SCREEN ── */
+.hero { margin: 16px 20px 0; background: #FDF6F0; border: 1px solid #EDCFB8; border-radius: 16px; padding: 20px; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; right: -20px; bottom: -20px; width: 100px; height: 100px; border-radius: 50%; background: rgba(201,106,46,.06); }
+.hero-gr { font-size: 12px; font-weight: 600; color: var(--tx2); margin-bottom: 3px; text-transform: uppercase; letter-spacing: .5px; }
+.hero-name { font-family: var(--fd); font-size: 24px; font-weight: 700; color: var(--tx); line-height: 1.2; }
+.hero-name em { font-style: italic; color: var(--accent); }
+.hero-addr { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--tx2); margin-top: 8px; }
+
+/* Stats — real data only */
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; padding: 0 20px; }
+.stat { background: var(--white); border: 1px solid var(--bd); border-radius: 12px; padding: 13px 12px; }
+.stat-num { font-family: var(--fd); font-size: 26px; font-weight: 700; line-height: 1; }
+.stat-lb { font-size: 11px; color: var(--tx3); margin-top: 3px; font-weight: 600; }
+
+/* Section headers — strict left alignment */
+.sec { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 10px; }
+.sec-t { font-family: var(--fd); font-size: 17px; font-weight: 700; color: var(--tx); }
+.sec-a { font-size: 13px; color: var(--accent); font-weight: 700; cursor: pointer; }
+
+/* Entry grid */
+.egrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 0 20px; }
+.ecard { background: var(--white); border: 1px solid var(--bd); border-radius: 14px; padding: 16px 15px; cursor: pointer; transition: border-color .15s; position: relative; overflow: hidden; }
+.ecard:active { background: var(--s1); }
+.ecard-ico { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 19px; margin-bottom: 11px; }
+.ecard-t { font-size: 14px; font-weight: 700; color: var(--tx); margin-bottom: 3px; }
+.ecard-s { font-size: 12px; color: var(--tx3); line-height: 1.4; }
+.ecard-badge { position: absolute; top: 10px; right: 10px; background: var(--red); color: white; font-size: 9px; font-weight: 800; min-width: 17px; height: 17px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+
+/* Task cards */
+.tlist { padding: 0 20px; display: flex; flex-direction: column; gap: 7px; }
+.tcard { background: var(--white); border: 1px solid var(--bd); border-radius: 12px; padding: 13px 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background .12s; }
+.tcard:active { background: var(--s1); }
+.tcard-ico { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.tcard-body { flex: 1; min-width: 0; }
+.tcard-t { font-size: 13px; font-weight: 700; color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tcard-s { font-size: 12px; color: var(--tx2); margin-top: 2px; }
+.pill { display: inline-block; padding: 3px 9px; border-radius: 5px; font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+.pill-act  { background: var(--acc-l); color: var(--accent); }
+.pill-pend { background: var(--amber-l); color: var(--amber); }
+.pill-done { background: var(--green-l); color: var(--green); }
+.pill-urg  { background: var(--red-l); color: var(--red); }
+.pill-info { background: var(--teal-l); color: var(--teal); }
+
+/* Empty states */
+.empty { padding: 28px 20px; text-align: center; }
+.empty-ico { font-size: 36px; margin-bottom: 10px; opacity: .5; }
+.empty-t { font-size: 14px; font-weight: 600; color: var(--tx2); margin-bottom: 5px; }
+.empty-s { font-size: 13px; color: var(--tx3); line-height: 1.55; }
+
+/* ── CHAT SCREEN ── */
+.chat-hdr { flex-shrink: 0; padding: 14px 20px 12px; background: rgba(250,250,248,.94); backdrop-filter: blur(20px); border-bottom: 1px solid var(--bd); }
+.chat-av { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.chat-hdr-name { font-family: var(--fd); font-size: 16px; font-weight: 700; color: var(--tx); }
+.chat-hdr-sub { font-size: 12px; color: var(--tx2); margin-top: 1px; }
+.sug-row { display: flex; gap: 7px; padding: 9px 20px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; border-bottom: 1px solid var(--bd); }
+.schip { display: inline-flex; align-items: center; gap: 5px; padding: 7px 13px; border-radius: 7px; background: var(--white); border: 1.5px solid var(--bd); font-size: 12px; font-weight: 600; color: var(--tx2); white-space: nowrap; cursor: pointer; transition: all .13s; flex-shrink: 0; }
+.schip:active { background: var(--acc-l); border-color: var(--accent); color: var(--accent); }
+.chat-msgs { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; }
+.mrow { display: flex; gap: 8px; animation: fu .2s ease; }
+.mrow.user { flex-direction: row-reverse; }
+.mav { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; align-self: flex-end; }
+.mav.ai { background: var(--accent); }
+.mav.user { background: var(--s2); font-family: var(--fd); font-size: 10px; font-weight: 700; color: var(--accent); }
+.bub { max-width: 80%; padding: 11px 14px; border-radius: 16px; font-size: 14px; line-height: 1.65; }
+.mrow.ai   .bub { background: var(--white); border: 1px solid var(--bd); color: var(--tx); border-bottom-left-radius: 4px; }
+.mrow.user .bub { background: var(--accent); color: var(--white); border-bottom-right-radius: 4px; }
+.mtime { font-size: 10px; color: var(--tx4); margin-top: 4px; display: block; }
+.mrow.user .mtime { text-align: right; }
+
+/* AI cards */
+.acard { background: var(--s1); border: 1px solid var(--bd); border-radius: 12px; padding: 13px; margin-top: 9px; }
+.acard-t { font-size: 13px; font-weight: 700; color: var(--tx); margin-bottom: 9px; }
+.aitem { display: flex; align-items: flex-start; gap: 7px; padding: 4px 0; font-size: 13px; color: var(--tx); line-height: 1.45; }
+.aitem-d { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 7px; }
+.adiv { height: 1px; background: var(--bd); margin: 9px 0; }
+.ameta { font-size: 12px; color: var(--tx2); margin: 2px 0; }
+.atotal { font-family: var(--fd); font-size: 21px; font-weight: 700; color: var(--tx); margin-top: 5px; }
+.abtns { display: flex; gap: 7px; margin-top: 11px; }
+.abtn { flex: 1; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; transition: all .13s; }
+.abtn:active { transform: scale(.96); }
+.abtn-c { background: var(--accent); color: var(--white); }
+.abtn-x { background: var(--white); color: var(--tx2); border: 1px solid var(--bd); }
+.frow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.fchip { display: inline-flex; align-items: center; padding: 5px 11px; border-radius: 7px; background: var(--white); border: 1.5px solid var(--bd); font-size: 12px; font-weight: 600; color: var(--accent); cursor: pointer; transition: background .12s; }
+.fchip:active { background: var(--acc-l); }
+.typing { display: flex; gap: 4px; padding: 5px 2px; align-items: center; }
+.td { width: 6px; height: 6px; border-radius: 50%; background: var(--tx3); animation: bl 1.2s ease-in-out infinite; }
+.td:nth-child(2){animation-delay:.2s;}.td:nth-child(3){animation-delay:.4s;}
+@keyframes bl{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-5px);opacity:1;}}
+.chat-bar { flex-shrink: 0; padding: 11px 20px 16px; background: rgba(250,250,248,.96); backdrop-filter: blur(20px); border-top: 1px solid var(--bd); }
+.cwrap { display: flex; align-items: flex-end; gap: 9px; background: var(--white); border: 1.5px solid var(--bd); border-radius: 12px; padding: 8px 8px 8px 15px; transition: border-color .16s; }
+.cwrap:focus-within { border-color: var(--accent); }
+.cta { flex: 1; background: transparent; border: none; outline: none; color: var(--tx); font-size: 14px; resize: none; max-height: 90px; overflow-y: auto; line-height: 1.5; padding: 3px 0; }
+.cta::placeholder { color: var(--tx4); }
+.csend { width: 33px; height: 33px; border-radius: 50%; flex-shrink: 0; background: var(--accent); color: var(--white); display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: transform .13s; }
+.csend:active { transform: scale(.88); }
+
+/* ── PROFILE ── */
+.phero { padding: 24px 20px 20px; background: linear-gradient(180deg, var(--acc-l) 0%, transparent 100%); border-bottom: 1px solid var(--bd); display: flex; align-items: center; gap: 16px; }
+.pav { width: 68px; height: 68px; border-radius: 50%; background: var(--white); border: 2.5px solid var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--fd); font-size: 24px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.phero-info { flex: 1; min-width: 0; }
+.phero-name { font-family: var(--fd); font-size: 20px; font-weight: 700; color: var(--tx); line-height: 1.2; }
+.phero-phone { font-size: 13px; color: var(--tx2); margin-top: 3px; }
+.phero-addr { font-size: 12px; color: var(--tx3); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* context card */
+.ctx { margin: 14px 20px 0; background: #FDF6F0; border: 1px solid #EDCFB8; border-radius: 12px; padding: 14px; display: none; }
+.ctx.on { display: block; }
+.ctx-lbl { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+.ctx-lbl-t { font-size: 11px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--accent); }
+.sync { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 5px; font-size: 11px; font-weight: 700; }
+.sync-ok  { background: var(--green-l); color: var(--green); }
+.sync-go  { background: var(--amber-l); color: var(--amber); }
+.ctx-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
+.ctx-tag { padding: 3px 9px; border-radius: 5px; font-size: 12px; font-weight: 600; background: var(--white); border: 1px solid var(--bd); color: var(--tx2); }
+.ctx-sum { font-size: 13px; color: var(--tx2); line-height: 1.6; }
+
+.ctx-btn-row { margin: 12px 20px 0; }
+
+/* profile section */
+.psec { margin: 12px 20px 0; background: var(--white); border: 1px solid var(--bd); border-radius: 14px; overflow: hidden; }
+.psec-lbl { padding: 11px 16px; font-size: 11px; font-weight: 700; color: var(--tx3); letter-spacing: .7px; text-transform: uppercase; border-bottom: 1px solid var(--bd); background: var(--s1); }
+.prow { display: flex; align-items: center; gap: 13px; padding: 13px 16px; border-bottom: 1px solid var(--bd); cursor: pointer; transition: background .12s; }
+.prow:last-child { border-bottom: none; }
+.prow:active { background: var(--s1); }
+.prow.nc { cursor: default; }
+.prow.nc:active { background: transparent; }
+.pic { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.plbl { font-size: 14px; font-weight: 600; color: var(--tx); }
+.pval { font-size: 12px; color: var(--tx2); margin-top: 2px; }
+.parr { color: var(--tx4); font-size: 16px; line-height: 1; }
+
+/* pref chips */
+.pchips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+.pchip { padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; background: var(--s1); border: 1.5px solid var(--bd); color: var(--tx2); transition: all .13s; }
+.pchip.on { background: var(--acc-l); border-color: var(--accent); color: var(--accent); }
+
+/* toggle */
+.tgl { position: relative; width: 40px; height: 22px; cursor: pointer; flex-shrink: 0; }
+.tgl input { display: none; }
+.tgl-t { position: absolute; inset: 0; background: var(--s3); border-radius: 11px; transition: background .2s; }
+.tgl input:checked+.tgl-t { background: var(--accent); }
+.tgl-k { position: absolute; width: 16px; height: 16px; top: 3px; left: 3px; background: var(--white); border-radius: 50%; transition: left .2s cubic-bezier(.22,1,.36,1); pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.tgl input:checked~.tgl-k { left: 21px; }
+
+/* linked acc */
+.lacc { display: flex; align-items: center; gap: 13px; padding: 12px 16px; border-bottom: 1px solid var(--bd); }
+.lacc:last-child { border-bottom: none; }
+.lacc-logo { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+.lacc-btn { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; transition: all .13s; }
+.lb-on  { background: var(--green-l); color: var(--green); }
+.lb-off { background: var(--acc-l); color: var(--accent); border: 1.5px solid #EDCFB8; }
+
+/* mbr */
+.mbrow { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--bd); }
+.mbrow:last-child { border-bottom: none; }
+.mbav { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--fd); font-size: 13px; font-weight: 700; color: var(--white); flex-shrink: 0; }
+
+/* hist */
+.hrow { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--bd); }
+.hrow:last-child { border-bottom: none; }
+.hrow-ico { width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.hrow-t { font-size: 13px; font-weight: 600; color: var(--tx); }
+.hrow-s { font-size: 11px; color: var(--tx3); margin-top: 2px; }
+.hrow-d { font-size: 11px; color: var(--tx4); white-space: nowrap; text-align: right; flex-shrink: 0; }
+
+/* ── MODALS ── */
+.mo { position: fixed; inset: 0; z-index: 300; background: rgba(26,23,20,.48); backdrop-filter: blur(6px); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .22s; }
+.mo.on { opacity: 1; pointer-events: all; }
+.ms { background: var(--white); border-radius: 20px 20px 0 0; border: 1px solid var(--bd); border-bottom: none; width: 100%; max-width: 430px; max-height: 88vh; overflow-y: auto; padding: 0 0 28px; transform: translateY(32px); transition: transform .28s cubic-bezier(.22,1,.36,1); }
+.mo.on .ms { transform: none; }
+.mhnd { width: 36px; height: 3.5px; border-radius: 2px; background: var(--s3); margin: 13px auto 17px; }
+.mt { padding: 0 20px 13px; font-family: var(--fd); font-size: 20px; font-weight: 700; color: var(--tx); }
+.mb { padding: 0 20px; }
+.plats { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 13px; }
+.plat { display: flex; align-items: center; gap: 7px; padding: 9px 13px; border-radius: 9px; background: var(--s1); border: 1.5px solid var(--bd); cursor: pointer; flex: 1; min-width: 116px; transition: all .13s; }
+.plat.on { border-color: var(--accent); background: var(--acc-l); }
+.plat-nm { font-size: 13px; font-weight: 600; color: var(--tx); }
+.schrow { display: flex; gap: 7px; flex-wrap: wrap; }
+.sc2 { padding: 7px 13px; border-radius: 7px; font-size: 12px; font-weight: 600; background: var(--s1); border: 1.5px solid var(--bd); color: var(--tx2); cursor: pointer; transition: all .13s; }
+.sc2.on { background: var(--accent); border-color: var(--accent); color: var(--white); }
+.setup-acc { display: flex; align-items: center; gap: 12px; padding: 12px 13px; background: var(--white); border: 1px solid var(--bd); border-radius: 11px; margin-bottom: 8px; }
+
+/* ── INSTAMART CART CARD ── */
+.im-card { background: #fff; border: 1.5px solid #F3820020; border-radius: 14px; overflow: hidden; margin-top: 10px; }
+.im-hdr { background: linear-gradient(135deg, #F38200, #FC8019); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
+.im-hdr-left { display: flex; align-items: center; gap: 9px; }
+.im-logo { width: 30px; height: 30px; border-radius: 8px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.im-hdr-name { font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -.2px; }
+.im-hdr-sub  { font-size: 11px; color: rgba(255,255,255,.8); margin-top: 1px; }
+.im-eta { background: rgba(255,255,255,.2); border-radius: 6px; padding: 4px 9px; font-size: 11px; font-weight: 700; color: #fff; }
+.im-items { padding: 4px 0; }
+.im-item { display: flex; align-items: center; gap: 11px; padding: 10px 14px; border-bottom: 1px solid #FFF0E0; }
+.im-item:last-child { border-bottom: none; }
+.im-item-ico { width: 36px; height: 36px; border-radius: 8px; background: #FFF7EE; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.im-item-name { font-size: 13px; font-weight: 700; color: #1a1714; }
+.im-item-qty  { font-size: 12px; color: #888; margin-top: 2px; }
+.im-item-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.im-item-price { font-size: 13px; font-weight: 700; color: #1a1714; }
+.im-item-link { padding: 4px 9px; border-radius: 5px; background: #FFF0E0; color: #F38200; font-size: 11px; font-weight: 800; cursor: pointer; text-decoration: none; white-space: nowrap; }
+.im-item-link:active { background: #FFE0C0; }
+.im-divider { height: 1px; background: #FFF0E0; margin: 0 14px; }
+.im-footer { padding: 12px 14px; }
+.im-addr { display: flex; align-items: flex-start; gap: 7px; padding: 10px 12px; background: #FFF7EE; border-radius: 8px; margin-bottom: 10px; }
+.im-addr-t { font-size: 12px; font-weight: 700; color: #1a1714; }
+.im-addr-s { font-size: 11px; color: #888; margin-top: 1px; }
+.im-total-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 11px; }
+.im-total-lbl { font-size: 12px; color: #888; font-weight: 600; }
+.im-total-amt { font-family: var(--fd); font-size: 22px; font-weight: 700; color: #1a1714; }
+.im-total-note { font-size: 10px; color: #aaa; margin-left: 4px; }
+.im-btn-row { display: flex; gap: 8px; }
+.im-btn-main { flex: 1; padding: 13px; border-radius: 10px; background: linear-gradient(135deg, #F38200, #FC8019); color: #fff; font-size: 14px; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: opacity .15s; }
+.im-btn-main:active { opacity: .88; }
+.im-btn-copy { padding: 13px 16px; border-radius: 10px; background: #FFF7EE; color: #F38200; font-size: 13px; font-weight: 700; border: 1.5px solid #F3820030; cursor: pointer; transition: background .13s; }
+.im-btn-copy:active { background: #FFE0C0; }
+.im-done { text-align: center; padding: 14px 0 4px; }
+.im-done-ic { font-size: 28px; margin-bottom: 7px; }
+.im-done-t { font-family: var(--fd); font-size: 16px; font-weight: 700; color: #1a1714; }
+.im-done-s { font-size: 12px; color: #888; margin-top: 4px; line-height: 1.5; }
+/* parsing spinner */
+.im-parsing { display: flex; align-items: center; gap: 10px; padding: 14px; background: #FFF7EE; border-radius: 12px; margin-top: 9px; }
+.im-parsing-t { font-size: 13px; font-weight: 600; color: #F38200; }
+
+.toast { position: fixed; bottom: calc(var(--nh)+12px); left: 50%; transform: translateX(-50%) translateY(12px); background: var(--tx); color: var(--white); border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: all .24s; white-space: nowrap; }
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+
+<script>
+/* ── STORAGE ── */
+var DB = {
+  async save(ph,d){try{await window.storage.set('profile:'+ph,JSON.stringify(d));}catch(e){}},
+  async load(ph){try{var r=await window.storage.get('profile:'+ph);return r?JSON.parse(r.value):null;}catch(e){return null;}},
+  async saveTasks(ph,d){try{await window.storage.set('tasks:'+ph,JSON.stringify(d));}catch(e){}},
+  async loadTasks(ph){try{var r=await window.storage.get('tasks:'+ph);return r?JSON.parse(r.value):{ongoing:[],history:[]};}catch(e){return{ongoing:[],history:[]};}},
+  async saveChat(ph,d){try{await window.storage.set('chat:'+ph,JSON.stringify(d));}catch(e){}},
+  async loadChat(ph){try{var r=await window.storage.get('chat:'+ph);return r?JSON.parse(r.value):[];}catch(e){return[];}},
+  async saveCtx(ph,d){try{await window.storage.set('ctx:'+ph,JSON.stringify(d));}catch(e){}},
+  async loadCtx(ph){try{var r=await window.storage.get('ctx:'+ph);return r?JSON.parse(r.value):null;}catch(e){return null;}}
+};
+
+/* ── STATE ── */
+var S = {
+  user:null, home:{}, homeType:'Apartment', members:[], chatHistory:[],
+  tasks:{ongoing:[],history:[]}, meta:{country:'India',region:'',foodPref:'',dietNotes:''},
+  ctx:null,
+  accs:[
+    {id:'blinkit',  name:'Blinkit',        logo:'🛵',color:'#FFF7E6',con:false},
+    {id:'instamart',name:'Swiggy Instamart',logo:'🟠',color:'#FFF3EC',con:false},
+    {id:'bigbasket',name:'BigBasket',       logo:'🥦',color:'#EEF7EE',con:false},
+    {id:'amazon',   name:'Amazon Fresh',    logo:'📦',color:'#E8F2FF',con:false},
+    {id:'urbancomp',name:'Urban Company',   logo:'🔧',color:'#E8F2FF',con:false},
+    {id:'zepto',    name:'Zepto',           logo:'⚡',color:'#F2ECFF',con:false}
+  ]
+};
+
+/* ── UTILS ── */
+function $(i){return document.getElementById(i);}
+var _tt;
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('on');},2500);}
+function fmtDate(ts){return new Date(ts||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+function setBadge(s){var b=$('sync-badge');if(!b)return;b.textContent=s==='go'?'● Saving…':'✓ Saved';b.className='sync '+(s==='go'?'sync-go':'sync-ok');}
+function computeStats(){
+  var og=S.tasks.ongoing||[], hs=S.tasks.history||[];
+  var done=hs.length, pending=og.filter(function(t){return t.status!=='Done';}).length;
+  $('st-done').textContent=done;
+  $('st-pend').textContent=pending;
+  $('st-tasks').textContent=og.length+hs.length;
+}
+
+/* ── PERSIST ── */
+async function persistProfile(){
+  if(!S.user)return; setBadge('go');
+  await DB.save(S.user.phone,{user:S.user,home:S.home,homeType:S.homeType,members:S.members,meta:S.meta,accs:S.accs.map(function(a){return{id:a.id,con:a.con};}),ts:Date.now()});
+  setBadge('ok');
+}
+async function persistTasks(){if(S.user)await DB.saveTasks(S.user.phone,S.tasks);}
+async function persistChat(){if(S.user)await DB.saveChat(S.user.phone,S.chatHistory);}
+
+async function loadProfile(phone){
+  var d=await DB.load(phone);
+  if(!d)return false;
+  S.user=d.user; S.home=d.home||{}; S.homeType=d.homeType||'Apartment';
+  S.members=d.members||[]; S.meta=Object.assign({country:'India',region:'',foodPref:'',dietNotes:''},d.meta||{});
+  (d.accs||[]).forEach(function(sv){var a=S.accs.find(function(x){return x.id===sv.id;});if(a)a.con=sv.con;});
+  S.tasks=await DB.loadTasks(phone);
+  S.chatHistory=await DB.loadChat(phone);
+  S.ctx=await DB.loadCtx(phone);
+  return true;
+}
+
+/* ── CONTEXT BUILDER ── */
+async function buildCtx(){
+  $('ctx-btn').disabled=true; $('ctx-btn').textContent='Building…';
+  var prompt='Analyse this household profile and respond ONLY with valid JSON:\n{"tags":["tag1","tag2"],"summary":"2-3 sentence warm personal summary"}\nMax 7 tags, very specific.\n\nDATA:\n'+buildCtxText();
+  try{
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});
+    var d=await r.json(); var raw=(d.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('').trim();
+    S.ctx=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    await DB.saveCtx(S.user.phone,S.ctx); renderCtx();
+  }catch(e){toast('Could not build context.');}
+  $('ctx-btn').disabled=false; $('ctx-btn').textContent='✦ Rebuild AI context';
+}
+function buildCtxText(){
+  var u=S.user||{},h=S.home||{},m=S.meta||{};
+  var ong=(S.tasks.ongoing||[]).map(function(t){return t.title;}).join(', ')||'none';
+  var his=(S.tasks.history||[]).slice(-4).map(function(t){return t.title+'('+t.status+')';}).join(', ')||'none';
+  var msgs=S.chatHistory.slice(-4).map(function(m){return m.role+': '+m.content;}).join('\n')||'none';
+  return 'Name:'+u.name+'\nPhone:'+u.phone+'\nHome:'+h.address+', '+h.city+'\nType:'+S.homeType+
+    '\nCountry:'+m.country+'\nRegion:'+m.region+'\nFood:'+m.foodPref+'\nDiet:'+m.dietNotes+
+    '\nMembers:'+S.members.length+'\nLinked:'+S.accs.filter(function(a){return a.con;}).map(function(a){return a.name;}).join(', ')+
+    '\nOngoing:'+ong+'\nHistory:'+his+'\nRecent chat:\n'+msgs;
+}
+function renderCtx(){
+  if(!S.ctx)return; var c=$('ctx-card');
+  $('ctx-tags').innerHTML=(S.ctx.tags||[]).map(function(t){return'<span class="ctx-tag">'+t+'</span>';}).join('');
+  $('ctx-sum').textContent=S.ctx.summary||'';
+  c.classList.add('on');
+}
+
+/* ── AUTH ── */
+function goPage(id){document.querySelectorAll('.apage').forEach(function(p){p.classList.remove('active');});$(id).classList.add('active');}
+function doSignup(){
+  var first=($('su-first').value||'').trim(), phone=$('su-phone').value.replace(/\D/g,''); var ok=true;
+  if(!first){$('su-first').classList.add('err');$('su-ferr').classList.add('show');ok=false;}else{$('su-first').classList.remove('err');$('su-ferr').classList.remove('show');}
+  if(!/^[6-9]\d{9}$/.test(phone)){$('su-pw').classList.add('err');$('su-perr').classList.add('show');ok=false;}else{$('su-pw').classList.remove('err');$('su-perr').classList.remove('show');}
+  if(!ok)return;
+  var last=($('su-last').value||'').trim(), name=(first+' '+last).trim();
+  S.user={name:name,phone:'+91'+phone,initials:(first[0]+(last[0]||'')).toUpperCase()};
+  S.members=[{name:name,phone:'+91'+phone,role:'Admin'}];
+  S.tasks={ongoing:[],history:[]}; S.chatHistory=[]; S.meta={country:'India',region:'',foodPref:'',dietNotes:''};
+  renderSetupMbrs(); renderSetupAccs(); goPage('pg-s1');
+}
+async function doSignin(){
+  var phone=$('li-phone').value.replace(/\D/g,'');
+  if(!/^[6-9]\d{9}$/.test(phone)){$('li-pw').classList.add('err');$('li-perr').classList.add('show');return;}
+  $('li-pw').classList.remove('err');$('li-perr').classList.remove('show');
+  // Always attempt to load from storage first — no demo data ever
+  var loaded=await loadProfile('+91'+phone);
+  if(!loaded){
+    S.user={name:'',phone:'+91'+phone,initials:phone.slice(-2)};
+    S.home={}; S.homeType='Apartment'; S.members=[{name:'You',phone:'+91'+phone,role:'Admin'}];
+    S.tasks={ongoing:[],history:[]}; S.chatHistory=[]; S.meta={country:'India',region:'',foodPref:'',dietNotes:''};
+    toast('New account created for this number.');
+  }
+  launchApp();
+}
+function doSignout(){
+  S={user:null,home:{},homeType:'Apartment',members:[],chatHistory:[],tasks:{ongoing:[],history:[]},meta:{country:'India',region:'',foodPref:'',dietNotes:''},ctx:null,accs:S.accs.map(function(a){return Object.assign({},a,{con:false});})};
+  $('app').classList.remove('on');$('app').style.display='none';
+  $('auth').classList.remove('hidden');
+  goPage('pg-welcome');
+}
+
+/* ── SETUP ── */
+function pickType(el,t){S.homeType=t;$('ht-chips').querySelectorAll('.sc2').forEach(function(c){c.classList.remove('on');});el.classList.add('on');}
+function goS2(){S.home.name=$('s1-name').value.trim()||'My Home';S.home.address=$('s1-addr').value.trim();S.home.city=$('s1-city').value.trim();S.home.pin=$('s1-pin').value.trim();S.home.type=S.homeType;goPage('pg-s2');}
+function goS3(){goPage('pg-s3');}
+function invMbr(){var ph=$('inv-phone').value.replace(/\D/g,'');if(!ph)return;S.members.push({name:'Member (+91'+ph+')',phone:'+91'+ph,role:'Member'});renderSetupMbrs();$('inv-phone').value='';toast('Invite sent!');}
+function renderSetupMbrs(){var w=$('mbrs-list');if(!w)return;var bgs=['#C96A2E','#2A6B45'];w.innerHTML=S.members.map(function(m,i){return'<div style="display:flex;align-items:center;gap:11px;padding:11px;background:var(--white);border:1px solid var(--bd);border-radius:10px;margin-bottom:7px;"><div style="width:32px;height:32px;border-radius:50%;background:'+bgs[i%bgs.length]+';display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">'+m.name[0]+'</div><div style="flex:1"><div style="font-size:13px;font-weight:600;">'+m.name+'</div><div style="font-size:11px;color:var(--tx3);">'+m.phone+'</div></div><span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;background:var(--acc-l);color:var(--accent);">'+m.role+'</span></div>';}).join('');}
+function renderSetupAccs(){var w=$('setup-accs');if(!w)return;w.innerHTML=S.accs.map(function(a){return'<div class="setup-acc"><div style="width:36px;height:36px;border-radius:9px;background:'+a.color+';display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;">'+a.logo+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600;">'+a.name+'</div><div style="font-size:12px;color:'+(a.con?'var(--green)':'var(--tx3)')+';">'+(a.con?'● Connected':'○ Not linked')+'</div></div><button class="lacc-btn '+(a.con?'lb-on':'lb-off')+'" onclick="toggleAcc(\''+a.id+'\',this)">'+(a.con?'Connected':'Connect')+'</button></div>';}).join('');}
+function toggleAcc(id,btn){var a=S.accs.find(function(x){return x.id===id;});if(!a)return;a.con=!a.con;btn.textContent=a.con?'Connected':'Connect';btn.className='lacc-btn '+(a.con?'lb-on':'lb-off');if(a.con)toast(a.name+' connected!');renderProfileAccs();persistProfile();}
+function finishSetup(){launchApp();}
+
+/* ── LAUNCH ── */
+function launchApp(){
+  $('auth').classList.add('hidden');
+  var app=$('app');app.style.display='flex';app.classList.add('on');
+  populateApp();navTo('home');
+  persistProfile();persistTasks();persistChat();
+}
+function populateApp(){
+  var u=S.user||{},h=S.home||{},m=S.meta||{};
+  var ini=u.initials||'?',fname=u.name?u.name.split(' ')[0]:'there';
+  var addr=[h.address,h.city].filter(Boolean).join(', ')||'Address not set';
+  var fullAddr=[h.address,h.city,h.pin].filter(Boolean).join(', ')||'—';
+  $('hdr-av').textContent=ini; $('hdr-hn').textContent=h.name||'My Home';
+  var hr=new Date().getHours();
+  $('h-gr').textContent=hr<12?'GOOD MORNING':hr<17?'GOOD AFTERNOON':'GOOD EVENING';
+  $('h-name').innerHTML=fname+'<em>.</em>'; $('h-addr').textContent=addr;
+  $('pav').textContent=ini; $('pp-name').textContent=u.name||'—'; $('pp-phone').textContent=u.phone||'—'; $('pp-addr').textContent=addr;
+  $('pi-name').textContent=u.name||'—'; $('pi-phone').textContent=u.phone||'—'; $('pi-addr').textContent=fullAddr;
+  $('pi-htype').textContent=h.type||S.homeType;
+  $('pi-country').textContent=m.country||'India'; $('pi-region').textContent=m.region||'—';
+  $('pi-food').textContent=foodLabel(m.foodPref); $('pi-diet').textContent=m.dietNotes||'—';
+  var ec=$('ep-country');if(ec)ec.value=m.country||'India';
+  var er=$('ep-region');if(er)er.value=m.region||'';
+  var ed=$('ep-diet');if(ed)ed.value=m.dietNotes||'';
+  document.querySelectorAll('#food-chips .pchip').forEach(function(c){c.classList.toggle('on',c.dataset.v===m.foodPref);});
+  $('ord-addr').textContent=h.address||'—'; $('svc-addr').textContent=h.address||'—';
+  computeStats(); renderOngoing(); renderHistory(); renderProfileMbrs(); renderProfileAccs(); renderCtx();
+  // restore chat history to UI
+  if(S.chatHistory.length>0){restoreChatUI();}
+}
+function foodLabel(v){return{vegetarian:'🌿 Vegetarian','non-vegetarian':'🍖 Non-vegetarian',eggetarian:'🥚 Eggetarian',vegan:'🌱 Vegan'}[v]||'— Not set';}
+
+/* ── PROFILE META ── */
+function pickFood(el){document.querySelectorAll('#food-chips .pchip').forEach(function(c){c.classList.remove('on');});el.classList.add('on');S.meta.foodPref=el.dataset.v;$('pi-food').textContent=foodLabel(S.meta.foodPref);saveMetaDebounced();}
+var _metaT;function saveMetaDebounced(){clearTimeout(_metaT);_metaT=setTimeout(saveMeta,600);}
+function saveMeta(){S.meta.country=$('ep-country').value;S.meta.region=$('ep-region').value;S.meta.dietNotes=$('ep-diet').value;$('pi-country').textContent=S.meta.country||'India';$('pi-region').textContent=S.meta.region||'—';$('pi-diet').textContent=S.meta.dietNotes||'—';persistProfile();}
+
+/* ── TASKS ── */
+function renderOngoing(){
+  var w=$('ongoing');if(!w)return;
+  var ts=S.tasks.ongoing||[];
+  if(!ts.length){w.innerHTML='<div class="empty"><div class="empty-ico">✅</div><div class="empty-t">No ongoing tasks</div><div class="empty-s">Tasks from your orders, bookings and AI Manager will appear here.</div></div>';return;}
+  var statCls={'On the way':'pill-act','Scheduled':'pill-pend','Urgent':'pill-urg','Due soon':'pill-pend','Pending':'pill-pend','Active':'pill-act','Done':'pill-done'};
+  w.innerHTML=ts.map(function(t){return'<div class="tcard" onclick="taskToChat(\''+encodeURIComponent(t.title)+'\')"><div class="tcard-ico" style="background:'+t.color+'">'+t.icon+'</div><div class="tcard-body"><div class="tcard-t">'+t.title+'</div><div class="tcard-s">'+t.sub+'</div></div><span class="pill '+(statCls[t.status]||'pill-info')+'">'+t.status+'</span></div>';}).join('');
+}
+function renderHistory(){
+  var w=$('hist');if(!w)return;
+  var ts=(S.tasks.history||[]).slice().reverse();
+  if(!ts.length){w.innerHTML='<div style="padding:16px;text-align:center;font-size:13px;color:var(--tx3);">No completed tasks yet.</div>';return;}
+  var statCls={Done:'pill-done',Delivered:'pill-done',Cancelled:'pill-urg'};
+  w.innerHTML=ts.map(function(t){return'<div class="hrow"><div class="hrow-ico" style="background:'+t.color+'">'+t.icon+'</div><div style="flex:1"><div class="hrow-t">'+t.title+'</div><div class="hrow-s">'+t.sub+'</div></div><div class="hrow-d"><div>'+fmtDate(t.ts)+'</div><span class="pill '+(statCls[t.status]||'pill-done')+'" style="font-size:10px;">'+t.status+'</span></div></div>';}).join('');
+}
+function taskToChat(enc){var t=decodeURIComponent(enc);navTo('chat');setTimeout(function(){$('ci').value='Status update: '+t;sendChat();},260);}
+function addTask(task){S.tasks.ongoing.push(task);persistTasks();renderOngoing();computeStats();}
+function doneTask(id){var i=S.tasks.ongoing.findIndex(function(t){return t.id===id;});if(i===-1)return;var t=S.tasks.ongoing.splice(i,1)[0];t.status='Done';t.ts=Date.now();S.tasks.history.push(t);persistTasks();renderOngoing();renderHistory();computeStats();}
+
+/* ── PROFILE RENDERS ── */
+function renderProfileMbrs(){
+  var w=$('prof-mbrs');if(!w)return;var bgs=['#C96A2E','#2A6B45','#5B4DA8'];
+  w.innerHTML=S.members.map(function(m,i){return'<div class="mbrow"><div class="mbav" style="background:'+bgs[i%bgs.length]+'">'+m.name[0]+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--tx);">'+m.name+'</div><div style="font-size:12px;color:var(--tx2);margin-top:2px;">'+m.phone+'</div></div><span class="pill '+(m.role==='Admin'?'pill-act':'pill-done')+'">'+m.role+'</span></div>';}).join('')+'<div style="padding:12px 16px;display:flex;align-items:center;gap:7px;color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;" onclick="toast(\'Invite sent!\')">+ Invite a member</div>';
+}
+function renderProfileAccs(){
+  var w=$('prof-accs');if(!w)return;
+  w.innerHTML=S.accs.map(function(a){return'<div class="lacc"><div class="lacc-logo" style="background:'+a.color+'">'+a.logo+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--tx);">'+a.name+'</div><div style="font-size:12px;margin-top:2px;color:'+(a.con?'var(--green)':'var(--tx3)')+';">'+(a.con?'● Connected':'○ Not linked')+'</div></div><button class="lacc-btn '+(a.con?'lb-on':'lb-off')+'" onclick="toggleAcc(\''+a.id+'\',this)">'+(a.con?'✓':'Connect')+'</button></div>';}).join('');
+}
+
+/* ── NAV ── */
+function navTo(tab){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('on');});var sc=$('tab-'+tab);if(sc)sc.classList.add('on');var ni=$('nav-'+tab);if(ni)ni.classList.add('on');if(tab==='chat')setTimeout(function(){var c=$('chat-msgs');if(c)c.scrollTop=c.scrollHeight;},80);}
+
+/* ── MODALS ── */
+function openMo(id){$(id).classList.add('on');}
+function closeMo(id){$(id).classList.remove('on');}
+document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.mo').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('on');});});document.querySelectorAll('.apage').forEach(function(p){p.classList.remove('active');});$('pg-welcome').classList.add('active');$('app').style.display='none';$('auth').classList.remove('hidden');});
+function pickPlat(el){el.closest('.plats').querySelectorAll('.plat').forEach(function(c){c.classList.remove('on');});el.classList.add('on');}
+function pickSch(el){el.parentElement.querySelectorAll('.sc2').forEach(function(c){c.classList.remove('on');});el.classList.add('on');}
+function selectInstamartMode(){
+  // Deselect other platforms
+  document.querySelectorAll('#ord-other-plats .plat').forEach(function(p){p.classList.remove('on');});
+  // Highlight Instamart card
+  var card=$('ord-instamart-card');
+  card.style.borderColor='#F38200';
+  $('im-radio').style.background='#F38200';
+  $('ord-plat').value='Swiggy Instamart';
+  // Update button
+  var btn=document.querySelector('#mo-ord .btn-p');
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="white" stroke-width="1.3"/><path d="M4.5 7h5M7 4.5v5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg> Build Instamart cart with AI →';
+  btn.style.background='linear-gradient(135deg,#F38200,#FC8019)';
+}
+function selectOtherPlat(el){
+  document.querySelectorAll('#ord-other-plats .plat').forEach(function(p){p.classList.remove('on');});
+  el.classList.add('on');
+  // Dim Instamart card
+  var card=$('ord-instamart-card');
+  card.style.borderColor='#F3820020';
+  $('im-radio').style.background='transparent';
+  $('ord-plat').value=el.dataset.p;
+  // Update button
+  var btn=document.querySelector('#mo-ord .btn-p');
+  btn.innerHTML='Let AI place this order →';
+  btn.style.background='var(--accent)';
+}
+function openSvc(type){var L={plumber:'Plumber 🔧',electrician:'Electrician ⚡',cleaning:'Deep Cleaning 🧹',ac:'AC Service ❄️',carpenter:'Carpenter 🪚',painter:'Painter 🖌️'};$('svc-title').textContent='Book '+(L[type]||type);openMo('mo-svc');}
+function submitOrd(){
+  var rawText=($('ord-items').value||'').trim();
+  if(!rawText){toast('Please enter what you need');return;}
+  var plat=($('ord-plat')&&$('ord-plat').value)||'Swiggy Instamart';
+  closeMo('mo-ord'); navTo('chat');
+  if(plat==='Swiggy Instamart'){
+    setTimeout(function(){ launchInstamartFlow(rawText); }, 280);
+  } else {
+    setTimeout(function(){$('ci').value='Order '+rawText+' from '+plat;sendChat();},280);
+  }
+}
+
+/* ── INSTAMART FLOW ── */
+async function launchInstamartFlow(rawText){
+  // Show user message
+  addMsg('user','Order from Swiggy Instamart: '+rawText);
+  S.chatHistory.push({role:'user',content:'Order from Swiggy Instamart: '+rawText});
+  persistChat();
+  // Show parsing state in chat
+  var h=S.home||{}, addr=[h.address,h.city,h.pin].filter(Boolean).join(', ')||'—';
+  var parsingEl=document.createElement('div');
+  parsingEl.className='mrow ai'; parsingEl.id='im-parsing-row';
+  parsingEl.innerHTML='<div class="mav ai"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="white" stroke-width="1.4"/><path d="M4.5 7h5M7 4.5v5" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg></div>'+
+    '<div><div class="bub"><div class="im-parsing">'+
+      '<div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>'+
+      '<div class="im-parsing-t">Checking your items with Instamart…</div></div></div></div>';
+  $('chat-msgs').appendChild(parsingEl); $('chat-msgs').scrollTop=99999;
+  // Call Claude to parse items
+  var m=S.meta||{}, food=m.foodPref?'Food preference: '+m.foodPref+'. ':' ';
+  var sysPrompt='You are a grocery parsing assistant. '+food+
+    'Parse the raw grocery request into structured items. '+
+    'Reply ONLY with valid JSON — no markdown fences:\n'+
+    '{"items":[{"name":"Amul Butter","qty":"1","unit":"pack","emoji":"🧈","category":"Dairy","estPrice":65,"searchQuery":"amul butter"},...],"totalEst":320,"greeting":"One line helpful message about this order"}';
+  var items=[];
+  try{
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,
+        messages:[{role:'user',content:'Parse this grocery request into structured items:\n'+rawText}],
+        system:sysPrompt})});
+    var d=await r.json();
+    var raw=(d.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('').trim();
+    var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    items=parsed.items||[];
+    var greeting=parsed.greeting||'Here\'s your Instamart cart';
+    var totalEst=parsed.totalEst||(items.reduce(function(s,i){return s+(i.estPrice||100);},0));
+    // Remove parsing element, insert cart
+    var pe=$('im-parsing-row'); if(pe)pe.remove();
+    renderInstamartCart(items, totalEst, greeting, addr);
+  }catch(e){
+    var pe=$('im-parsing-row'); if(pe)pe.remove();
+    addMsg('ai','Couldn\'t parse your items. Let me try another way.');
+    setTimeout(function(){$('ci').value='Order from Swiggy Instamart: '+rawText;sendChat();},300);
+  }
+}
+
+function renderInstamartCart(items, totalEst, greeting, addr){
+  var tid='im_'+Date.now();
+  // Build items HTML
+  var itemsHTML=items.map(function(it,idx){
+    var url='https://www.swiggy.com/instamart/search?query='+encodeURIComponent(it.searchQuery||it.name);
+    return '<div class="im-item">'+
+      '<div class="im-item-ico">'+it.emoji+'</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div class="im-item-name">'+it.name+'</div>'+
+        '<div class="im-item-qty">'+it.qty+' '+it.unit+'</div>'+
+      '</div>'+
+      '<div class="im-item-right">'+
+        '<div class="im-item-price">~₹'+it.estPrice+'</div>'+
+        '<a class="im-item-link" href="'+url+'" target="_blank" rel="noopener">Search</a>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  var card='<div class="im-card" id="im-card-'+tid+'">'+
+    '<div class="im-hdr">'+
+      '<div class="im-hdr-left">'+
+        '<div class="im-logo">🟠</div>'+
+        '<div><div class="im-hdr-name">Swiggy Instamart</div><div class="im-hdr-sub">'+items.length+' items ready</div></div>'+
+      '</div>'+
+      '<div class="im-eta">⚡ 10–20 min</div>'+
+    '</div>'+
+    '<div class="im-items">'+itemsHTML+'</div>'+
+    '<div class="im-footer">'+
+      '<div class="im-addr">'+
+        '<svg width="13" height="15" viewBox="0 0 13 15" fill="none"><circle cx="6.5" cy="6" r="2.2" stroke="#F38200" stroke-width="1.3"/><path d="M6.5 1C4.02 1 2 3.02 2 5.5 2 9.16 6.5 14 6.5 14S11 9.16 11 5.5C11 3.02 8.98 1 6.5 1z" stroke="#F38200" stroke-width="1.3"/></svg>'+
+        '<div><div class="im-addr-t">Delivering to</div><div class="im-addr-s">'+addr+'</div></div>'+
+      '</div>'+
+      '<div class="im-total-row">'+
+        '<span class="im-total-lbl">Estimated total</span>'+
+        '<span><span class="im-total-amt">₹'+totalEst+'</span><span class="im-total-note">approx</span></span>'+
+      '</div>'+
+      '<div class="im-btn-row">'+
+        '<button class="im-btn-main" onclick="openInstamart('+JSON.stringify(items).replace(/"/g,"'")+',\''+tid+'\',this)">'+
+          '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l5-5 5 5M8 3v10" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+          'Open Instamart to confirm'+
+        '</button>'+
+        '<button class="im-btn-copy" onclick="copyCartList(this)">📋</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  addMsg('ai', greeting, card, ['Track this order','Add more items','Suggest cheaper alternatives']);
+  // Store items on the element so copyCartList can read them
+  setTimeout(function(){
+    var el=$('im-card-'+tid);
+    if(el) el._items=items;
+  },50);
+}
+
+function openInstamart(items, tid, btn){
+  // Log task immediately
+  addTask({id:tid,title:'Instamart cart — '+items.length+' items',sub:'Tap to continue in Swiggy app',icon:'🟠',color:'#FFF3EC',status:'Pending',ts:Date.now()});
+  // Open Instamart search for first item (best deep link UX)
+  var firstQuery=encodeURIComponent((items[0]&&items[0].searchQuery)||'grocery');
+  var url='https://www.swiggy.com/instamart/search?query='+firstQuery;
+  window.open(url,'_blank');
+  // Update card to "opened" state
+  var card=btn.closest('.im-card');
+  if(card){
+    card.querySelector('.im-btn-row').innerHTML=
+      '<div class="im-done">'+
+        '<div class="im-done-ic">🟠</div>'+
+        '<div class="im-done-t">Instamart opened!</div>'+
+        '<div class="im-done-s">Search and add each item in the Swiggy app,<br>then tap <b>Place Order</b> to complete.</div>'+
+      '</div>';
+  }
+  toast('Opening Swiggy Instamart…');
+  S.chatHistory.push({role:'assistant',content:'Instamart opened for '+items.length+' items. Task logged.'});
+  persistChat();
+}
+
+function copyCartList(btn){
+  var card=btn.closest('.im-card');
+  var items=card&&card._items;
+  if(!items||!items.length){toast('Nothing to copy');return;}
+  var txt='🟠 Swiggy Instamart List\n'+'─'.repeat(24)+'\n';
+  items.forEach(function(it,i){ txt+=(i+1)+'. '+it.name+' — '+it.qty+' '+it.unit+'\n'; });
+  txt+='\nEstimated delivery: 10–20 min';
+  navigator.clipboard&&navigator.clipboard.writeText(txt).then(function(){toast('List copied to clipboard!');}).catch(function(){toast('Copy failed — try manually');});
+}
+function submitSvc(){var desc=$('svc-desc').value||'service';var type=$('svc-title').textContent;closeMo('mo-svc');navTo('chat');setTimeout(function(){$('ci').value='Book '+type+' — '+desc;sendChat();},280);}
+
+/* ── AI CHAT ── */
+function sendSug(el){$('ci').value=el.textContent.trim();sendChat();}
+function tapChip(el){$('ci').value=el.textContent.trim();sendChat();}
+
+function buildSys(){
+  var u=S.user||{},h=S.home||{},m=S.meta||{};
+  var city=h.city||'your city';
+  var addr=[h.address,h.city,h.pin].filter(Boolean).join(', ')||'not set';
+  var linked=S.accs.filter(function(a){return a.con;}).map(function(a){return a.name;}).join(', ')||'none';
+  var food=m.foodPref?'Food preference: '+m.foodPref+(m.dietNotes?' ('+m.dietNotes+')':''):'';
+  var ctxNote=S.ctx?'Profile context: '+S.ctx.summary:'';
+  return 'You are HomeManager AI — a warm, knowledgeable home assistant for an Indian household.\n\n'+
+    'USER: '+(u.name||'User')+' | Phone: '+(u.phone||'N/A')+'\n'+
+    'HOME: '+(h.name||'Home')+', '+(h.type||'Apartment')+', '+addr+'\n'+
+    'CITY: '+city+(m.region?', '+m.region:'')+', India\n'+
+    'LINKED APPS: '+linked+'\n'+
+    (food?food+'\n':'')+(ctxNote?ctxNote+'\n':'')+
+    '\nRESPOND ONLY with valid JSON — no markdown, no extra text.\n\n'+
+    'FORMATS:\n'+
+    '{"type":"chat","message":"<html>","suggestions":["short chip 1","short chip 2","short chip 3"]}\n'+
+    '{"type":"order","platform":"Blinkit","message":"...","items":["item · qty"],"eta":"15–25 min","estimatedTotal":480,"suggestions":["chip"]}\n'+
+    '{"type":"service","provider":"Urban Company","serviceType":"Electrician","message":"...","issueDetails":"...","slot":"Tomorrow 11AM–1PM","estimatedCost":"₹499–₹999","suggestions":["chip"]}\n\n'+
+    'RULES:\n'+
+    '- Weather → fetch real weather for '+city+' via web search, then give specific home tips (hot=AC, rain=waterproofing, cold=heater)\n'+
+    '- Food query → suggest dishes that match food preference ('+( m.foodPref||'any')+'), give recipe, then offer to order ingredients\n'+
+    '- Maintenance → give checklist, offer to book service\n'+
+    '- Budget/spending → give analysis, saving tips\n'+
+    '- suggestions[] = 2–3 SHORT tappable follow-up actions, home-relevant\n'+
+    '- Warm tone. <b> and <br> in message HTML. Use ₹. Indian context.';
+}
+
+async function sendChat(){
+  var inp=$('ci'),msg=inp.value.trim();if(!msg)return;
+  inp.value='';inp.style.height='auto';
+  addMsg('user',msg);
+  S.chatHistory.push({role:'user',content:msg});
+  showTyping();
+  try{
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:buildSys(),messages:S.chatHistory,tools:[{type:'web_search_20250305',name:'web_search'}]})});
+    var d=await r.json();hideTyping();
+    var raw=(d.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('').trim();
+    S.chatHistory.push({role:'assistant',content:raw||'...'});persistChat();
+    handleAI(raw);
+  }catch(e){hideTyping();addMsg('ai','Sorry, I couldn\'t connect right now.');}
+}
+function handleAI(raw){
+  var p;try{p=JSON.parse(raw.replace(/^```json\n?|```$/gm,'').trim());}catch(e){addMsg('ai',raw.replace(/\n/g,'<br>'));return;}
+  var u=S.user||{},h=S.home||{},addr=[h.address,h.city,h.pin].filter(Boolean).join(', ')||'—',ph=u.phone||'—',sg=p.suggestions||[];
+  if(p.type==='order'){
+    var plat=p.platform||'Blinkit',items=p.items||[],total=p.estimatedTotal||(items.length*120),eta=p.eta||'15–25 min',tid='t'+Date.now();
+    // If Instamart → render rich cart
+    if(plat==='Swiggy Instamart'||plat==='Instamart'){
+      var h=S.home||{},addr=[h.address,h.city,h.pin].filter(Boolean).join(', ')||'—';
+      // Convert AI items array (strings) to structured objects
+      var structured=items.map(function(it,i){
+        var parts=(typeof it==='string'?it:'').split('·');
+        var name=(parts[0]||it).trim(), qty=(parts[1]||'1 pc').trim();
+        var emojis=['🥬','🥛','🍅','🧅','🧄','🥦','🍋','🌶','🥚','🧈','🍞','🥩','🐟','🍚','🫒'];
+        return {name:name,qty:qty.split(' ')[0]||'1',unit:qty.split(' ')[1]||'pc',emoji:emojis[i%emojis.length],searchQuery:name.toLowerCase(),estPrice:Math.round(total/items.length)};
+      });
+      renderInstamartCart(structured, total, p.message||'Here\'s your Instamart cart', addr);
+      return;
+    }
+    var card='<div class="acard"><div class="acard-t">🛒 Order via '+plat+'</div>'+items.map(function(i){return'<div class="aitem"><span class="aitem-d"></span><span>'+i+'</span></div>';}).join('')+'<div class="adiv"></div><div class="ameta">📍 '+addr+'</div><div class="ameta">📱 '+ph+'</div><div class="ameta">⏱ '+eta+'</div><div class="atotal">Est. ₹'+total+'</div><div class="abtns"><button class="abtn abtn-c" onclick="confirmOrd(\''+plat+'\',\''+items.slice(0,2).join(', ')+'\',\''+tid+'\',this)">Confirm Order</button><button class="abtn abtn-x" onclick="this.closest(\'.acard\').remove()">Cancel</button></div></div>';
+    addMsg('ai',p.message||'Here\'s your order on <b>'+plat+'</b>:',card,sg);
+  }else if(p.type==='service'){
+    var prov=p.provider||'Urban Company',st=p.serviceType||'Service',slot=p.slot||'Tomorrow 11AM–1PM',cost=p.estimatedCost||'₹499–₹999',tid2='t'+Date.now();
+    var card2='<div class="acard"><div class="acard-t">🛠 '+st+' via '+prov+'</div>'+(p.issueDetails?'<div class="aitem"><span class="aitem-d"></span><span>'+p.issueDetails+'</span></div>':'')+'<div class="adiv"></div><div class="ameta">📍 '+addr+'</div><div class="ameta">📱 '+ph+'</div><div class="ameta">📅 '+slot+'</div><div class="atotal">'+cost+'</div><div class="abtns"><button class="abtn abtn-c" onclick="confirmSvc(\''+prov+'\',\''+st+'\',\''+slot+'\',\''+tid2+'\',this)">Confirm Booking</button><button class="abtn abtn-x" onclick="this.closest(\'.acard\').remove()">Cancel</button></div></div>';
+    addMsg('ai',p.message||'Booking <b>'+st+'</b>:',card2,sg);
+  }else{addMsg('ai',(p.message||raw).replace(/\n/g,'<br>'),null,sg);}
+}
+function confirmOrd(plat,snip,tid,btn){
+  toast('Order placed on '+plat+'! 🎉');
+  btn.closest('.acard').innerHTML='<div style="text-align:center;padding:10px 0"><div style="font-size:26px;margin-bottom:7px;">🎉</div><div style="font-family:var(--fd);font-size:16px;font-weight:700;">Order placed on '+plat+'!</div><div style="font-size:12px;color:var(--tx2);margin-top:4px;">You\'ll get updates on your phone.</div></div>';
+  addTask({id:tid,title:'Order · '+plat,sub:snip,icon:'🛒',color:'#FFF7E6',status:'On the way',ts:Date.now()});
+}
+function confirmSvc(prov,st,slot,tid,btn){
+  toast('Booking confirmed! ✅');
+  btn.closest('.acard').innerHTML='<div style="text-align:center;padding:10px 0"><div style="font-size:26px;margin-bottom:7px;">✅</div><div style="font-family:var(--fd);font-size:16px;font-weight:700;">Booking confirmed!</div><div style="font-size:12px;color:var(--tx2);margin-top:4px;">'+st+' · '+prov+' · '+slot+'</div></div>';
+  addTask({id:tid,title:st+' · '+prov,sub:slot,icon:'🔧',color:'#E8F2FF',status:'Scheduled',ts:Date.now()});
+}
+
+function addMsg(role,text,card,suggs){
+  var a=$('chat-msgs'),ini=(S.user&&S.user.initials)||'?',now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  var w=document.createElement('div');w.className='mrow '+role;
+  var sg=suggs&&suggs.length?'<div class="frow">'+suggs.map(function(s){return'<div class="fchip" onclick="tapChip(this)">'+s+'</div>';}).join('')+'</div>':'';
+  if(role==='ai'){w.innerHTML='<div class="mav ai"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="white" stroke-width="1.4"/><path d="M4.5 7h5M7 4.5v5" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg></div><div><div class="bub">'+(text||'')+(card||'')+sg+'</div><span class="mtime">'+now+'</span></div>';}
+  else{w.innerHTML='<div class="mav user">'+ini+'</div><div><div class="bub">'+text+'</div><span class="mtime">'+now+'</span></div>';}
+  a.appendChild(w);a.scrollTop=a.scrollHeight;
+}
+function restoreChatUI(){
+  // Don't restore full history to DOM (can be huge) — just show summary
+  var a=$('chat-msgs');
+  var n=S.chatHistory.length;
+  var note=document.createElement('div');
+  note.style.cssText='text-align:center;font-size:11px;color:var(--tx4);padding:4px 0 8px;';
+  note.textContent=n+' message'+(n!==1?'s':'')+' in history';
+  a.insertBefore(note,a.firstChild);
+}
+var _te=null;
+function showTyping(){var a=$('chat-msgs');_te=document.createElement('div');_te.className='mrow ai';_te.innerHTML='<div class="mav ai"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="white" stroke-width="1.4"/></svg></div><div class="bub" style="padding:11px 15px"><div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>';a.appendChild(_te);a.scrollTop=a.scrollHeight;}
+function hideTyping(){if(_te){_te.remove();_te=null;}}
+</script>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- ══ AUTH ══ -->
+<div id="auth">
+
+  <div class="apage active" id="pg-welcome">
+    <div class="a-mark"><div class="a-orb"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8L9 2l7 6v8a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 17V10h6v7" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg></div><div class="a-brand">HomeManager</div></div>
+    <div class="a-body">
+      <div class="a-eyebrow">Smart Home, Simpler Life</div>
+      <h1 class="a-h1">Your home,<br><em>intelligently</em><br>managed.</h1>
+      <p class="a-sub">Groceries, services, chores — all through one AI that truly knows your household.</p>
+      <div class="feat-grid">
+        <div class="feat"><div class="feat-ic">🛒</div><div class="feat-t">Smart Orders</div><div class="feat-s">Groceries on autopilot</div></div>
+        <div class="feat"><div class="feat-ic">🔧</div><div class="feat-t">Home Services</div><div class="feat-s">Book pros instantly</div></div>
+        <div class="feat"><div class="feat-ic">🤖</div><div class="feat-t">AI Manager</div><div class="feat-s">Context-aware assistant</div></div>
+        <div class="feat"><div class="feat-ic">👨‍👩‍👧</div><div class="feat-t">Family Sharing</div><div class="feat-s">Tasks for everyone</div></div>
+      </div>
+    </div>
+    <div class="a-foot">
+      <button class="btn btn-p" onclick="goPage('pg-signup')">Get started →</button>
+      <button class="btn btn-g" onclick="goPage('pg-signin')">I already have an account</button>
+    </div>
+  </div>
+
+  <div class="apage" id="pg-signup">
+    <div class="a-mark"><div class="a-orb"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8L9 2l7 6v8a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 17V10h6v7" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg></div><div class="a-brand">HomeManager</div></div>
+    <div class="a-body">
+      <div class="a-eyebrow">New account</div>
+      <h1 class="a-h1" style="font-size:28px;">Just your name<br>and mobile</h1>
+      <p class="a-sub" style="margin-bottom:20px;">No passwords. In instantly.</p>
+      <div class="g2">
+        <div class="fg"><label class="fl">First name</label><input class="fi" type="text" id="su-first" placeholder="Aryan"><div class="err-txt" id="su-ferr">Required</div></div>
+        <div class="fg"><label class="fl">Last name</label><input class="fi" type="text" id="su-last" placeholder="Sharma"></div>
+      </div>
+      <div class="fg"><label class="fl">Mobile number</label>
+        <div class="ph-wrap" id="su-pw"><div class="ph-pfx">🇮🇳 +91</div><input type="tel" id="su-phone" placeholder="98765 43210" maxlength="10"></div>
+        <div class="err-txt" id="su-perr">Valid 10-digit number required</div>
+      </div>
+    </div>
+    <div class="a-foot">
+      <button class="btn btn-p" onclick="doSignup()">Create account →</button>
+      <div class="a-link">Have an account? <a onclick="goPage('pg-signin')">Sign in</a></div>
+    </div>
+  </div>
+
+  <div class="apage" id="pg-signin">
+    <div class="a-mark"><div class="a-orb"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8L9 2l7 6v8a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 17V10h6v7" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg></div><div class="a-brand">HomeManager</div></div>
+    <div class="a-body">
+      <div class="a-eyebrow">Welcome back</div>
+      <h1 class="a-h1" style="font-size:28px;">Good to see<br>you again</h1>
+      <p class="a-sub" style="margin-bottom:20px;">Enter your mobile to sign in instantly.</p>
+      <div class="fg"><label class="fl">Mobile number</label>
+        <div class="ph-wrap" id="li-pw"><div class="ph-pfx">🇮🇳 +91</div><input type="tel" id="li-phone" placeholder="98765 43210" maxlength="10"></div>
+        <div class="err-txt" id="li-perr">Valid 10-digit number required</div>
+      </div>
+    </div>
+    <div class="a-foot">
+      <button class="btn btn-p" onclick="doSignin()">Sign in →</button>
+      <div class="a-link">New here? <a onclick="goPage('pg-signup')">Create account</a></div>
+    </div>
+  </div>
+
+  <div class="apage" id="pg-s1">
+    <div class="a-mark"><div class="a-orb"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8L9 2l7 6v8a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 17V10h6v7" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg></div><div class="a-brand">HomeManager</div></div>
+    <div class="prog"><div class="prog-f" style="width:33%"></div></div><div class="prog-lb" style="margin-bottom:14px;">Step 1 of 3 — Home details</div>
+    <div class="a-body" style="justify-content:flex-start;padding-top:10px;">
+      <h2 style="font-family:var(--fd);font-size:22px;font-weight:700;margin-bottom:5px;">Your home 🏡</h2>
+      <p class="a-sub" style="margin-bottom:16px;font-size:14px;">Auto-fills your orders and bookings.</p>
+      <div class="fg"><label class="fl">Home name</label><input class="fi" id="s1-name" placeholder="e.g. Sharma Residence"></div>
+      <div class="fg"><label class="fl">Street address</label><input class="fi" id="s1-addr" placeholder="Flat, building, street"></div>
+      <div class="g2">
+        <div class="fg"><label class="fl">City</label><input class="fi" id="s1-city" placeholder="Bengaluru"></div>
+        <div class="fg"><label class="fl">Pincode</label><input class="fi" id="s1-pin" placeholder="560001"></div>
+      </div>
+      <div class="fg"><label class="fl">Home type</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:4px;" id="ht-chips">
+          <div class="sc2 on" onclick="pickType(this,'Apartment')">Apartment</div>
+          <div class="sc2" onclick="pickType(this,'Villa')">Villa</div>
+          <div class="sc2" onclick="pickType(this,'Studio')">Studio</div>
+          <div class="sc2" onclick="pickType(this,'Row House')">Row House</div>
+        </div>
+      </div>
+    </div>
+    <div class="a-foot">
+      <button class="btn btn-p" onclick="goS2()">Next →</button>
+      <button class="btn btn-g" onclick="goPage('pg-signup')">← Back</button>
+    </div>
+  </div>
+
+  <div class="apage" id="pg-s2">
+    <div class="a-mark"><div class="a-orb"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8L9 2l7 6v8a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 17V10h6v7" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg></div><div class="a-brand">HomeManager</div></div>
+    <div class="prog"><div class="prog-f" style="width:66%"></div></div><div class="prog-lb" style="margin-bottom:14px;">Step 2 of 3 — Family members</div>
+    <div class="a-body" style="justify-content:flex-start;padding-top:10px;">
+      <h2 style="font-family:var(--fd);font-size:22px;font-weight:700;margin-bottom:5px;">Your family 👨‍👩‍👧</h2>
+      <p class="a-sub" style="margin-bottom:16px;font-size:14px;">Share your dashboard. Skip to continue alone.</p>
+      <div id="mbrs-list"></div>
+      <div style="display:flex;gap:9px;"><input class="fi" type="tel" id="inv-phone" placeholder="Invite by mobile" style="flex:1;"><button class="btn btn-g btn-sm" onclick="invMbr()">Invite</button></div>
+    </div>
+    <div class="a-foot">
+      <button class="btn btn-p" onclick="goS3()">Next →</button>
+      <button class="btn btn-g" onclick="goPage('pg-s1')">← Back</button>
+    </div>
+  </div>
+
+  <div class="apage" id="pg-s3">
+    <div class="a-mark"><div class="a-orb"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 8L9 2l7 6v8a1 1 0 01-1 1H3a1 1 0 01-1-1V8z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/><path d="M6 17V10h6v7" stroke="white" stroke-width="1.5" stroke-linejoin="round"/></svg></div><div class="a-brand">HomeManager</div></div>
+    <div class="prog"><div class="prog-f" style="width:100%"></div></div><div class="prog-lb" style="margin-bottom:14px;">Step 3 of 3 — Link accounts</div>
+    <div class="a-body" style="justify-content:flex-start;padding-top:10px;">
+      <h2 style="font-family:var(--fd);font-size:22px;font-weight:700;margin-bottom:5px;">Link your apps 🔗</h2>
+      <p class="a-sub" style="margin-bottom:16px;font-size:14px;">Let HomeAI order on your behalf.</p>
+      <div id="setup-accs"></div>
+    </div>
+    <div class="a-foot">
+      <button class="btn btn-p" onclick="finishSetup()">Start managing 🚀</button>
+      <button class="btn btn-g" onclick="goPage('pg-s2')">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <div class="hdr">
+    <div class="hdr-brand">HomeManager</div>
+    <div class="hdr-center">
+      <div class="hdr-pill"><div class="ldot"></div><span id="hdr-hn">My Home</span></div>
+    </div>
+    <div class="hdr-right">
+      <div class="av" id="hdr-av" onclick="navTo('profile')">?</div>
+    </div>
+  </div>
+
+  <div class="screens">
+
+    <!-- HOME -->
+    <div class="screen on" id="tab-home">
+      <div style="padding:16px 20px 0;">
+        <div class="hero">
+          <div class="hero-gr" id="h-gr">GOOD MORNING</div>
+          <div class="hero-name" id="h-name">Loading<em>.</em></div>
+          <div class="hero-addr">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0"><circle cx="6" cy="5" r="2" stroke="#C96A2E" stroke-width="1.3"/><path d="M6 1C3.79 1 2 2.79 2 5c0 3 4 7 4 7s4-4 4-7c0-2.21-1.79-4-4-4z" stroke="#C96A2E" stroke-width="1.3"/></svg>
+            <span id="h-addr">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- REAL stats only -->
+      <div class="sec"><div class="sec-t">This week</div></div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num" style="color:var(--green);" id="st-done">0</div><div class="stat-lb">Completed</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--amber);" id="st-pend">0</div><div class="stat-lb">Pending</div></div>
+        <div class="stat"><div class="stat-num" style="color:var(--accent);" id="st-tasks">0</div><div class="stat-lb">All tasks</div></div>
+      </div>
+
+      <div class="sec"><div class="sec-t">What do you need?</div><div class="sec-a" onclick="navTo('chat')">Ask AI</div></div>
+      <div class="egrid">
+        <div class="ecard" onclick="openMo('mo-ord')">
+          <div class="ecard-ico" style="background:#FFF7E6;">🛒</div>
+          <div class="ecard-t">Groceries</div>
+          <div class="ecard-s">Order from Blinkit, Instamart & more</div>
+        </div>
+        <div class="ecard" onclick="openMo('mo-svc-pick')">
+          <div class="ecard-ico" style="background:#EEF7EE;">🔧</div>
+          <div class="ecard-t">Home Services</div>
+          <div class="ecard-s">Plumbers, electricians, cleaners</div>
+        </div>
+        <div class="ecard" onclick="navTo('chat');setTimeout(function(){$('ci').value='What chores should I prioritise this week?';sendChat();},260)">
+          <div class="ecard-ico" style="background:#F0EAFF;">✅</div>
+          <div class="ecard-t">Chores</div>
+          <div class="ecard-s">Manage tasks & routines</div>
+        </div>
+        <div class="ecard" onclick="navTo('chat');setTimeout(function(){$('ci').value='Show my household budget summary';sendChat();},260)">
+          <div class="ecard-ico" style="background:#FFF3EC;">💸</div>
+          <div class="ecard-t">Budget</div>
+          <div class="ecard-s">Track spending & get insights</div>
+        </div>
+      </div>
+
+      <div class="sec"><div class="sec-t">Ongoing tasks</div></div>
+      <div id="ongoing" class="tlist"></div>
+      <div style="height:16px;"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="screen chat-sc" id="tab-chat">
+      <div class="chat-hdr">
+        <div style="display:flex;align-items:center;gap:11px;">
+          <div class="chat-av"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6" stroke="white" stroke-width="1.5"/><path d="M6 9h6M9 6v6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><div class="chat-hdr-name">My Manager</div><div class="chat-hdr-sub">AI · Web search · Knows your home</div></div>
+        </div>
+      </div>
+      <div class="sug-row">
+        <div class="schip" onclick="sendSug(this)">🌤️ Weather today?</div>
+        <div class="schip" onclick="sendSug(this)">🥗 Nutritious dinner idea</div>
+        <div class="schip" onclick="sendSug(this)">🛒 Monthly grocery list</div>
+        <div class="schip" onclick="sendSug(this)">❄️ Service my AC?</div>
+        <div class="schip" onclick="sendSug(this)">🧹 Maintenance checklist</div>
+        <div class="schip" onclick="sendSug(this)">💸 Budget summary</div>
+        <div class="schip" onclick="sendSug(this)">🌿 Healthy breakfast ideas</div>
+      </div>
+      <div class="chat-msgs" id="chat-msgs">
+        <div class="mrow ai">
+          <div class="mav ai"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="white" stroke-width="1.4"/><path d="M4.5 7h5M7 4.5v5" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+          <div><div class="bub">Hi! I'm your <b>Home Manager</b>. Ask me about the weather, suggest a recipe, help order groceries, or book a service. What do you need?
+            <div class="frow">
+              <div class="fchip" onclick="tapChip(this)">🌤️ Today's weather?</div>
+              <div class="fchip" onclick="tapChip(this)">🥗 Suggest a healthy meal</div>
+              <div class="fchip" onclick="tapChip(this)">🏠 Home tips for this season</div>
+            </div>
+          </div><span class="mtime">Now</span></div>
+        </div>
+      </div>
+      <div class="chat-bar">
+        <div class="cwrap">
+          <textarea class="cta" id="ci" placeholder="Ask anything — weather, recipes, home tips, orders…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,90)+'px'"></textarea>
+          <button class="csend" onclick="sendChat()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M3 7l4-4 4 4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="tab-profile">
+      <!-- left-aligned hero row -->
+      <div class="phero">
+        <div class="pav" id="pav">?</div>
+        <div class="phero-info">
+          <div class="phero-name" id="pp-name">—</div>
+          <div class="phero-phone" id="pp-phone">—</div>
+          <div class="phero-addr" id="pp-addr">—</div>
+        </div>
+      </div>
+
+      <!-- context card -->
+      <div class="ctx" id="ctx-card">
+        <div class="ctx-lbl"><span class="ctx-lbl-t">🧠 AI Profile Context</span><span class="sync sync-ok" id="sync-badge">✓ Saved</span></div>
+        <div class="ctx-tags" id="ctx-tags"></div>
+        <div class="ctx-sum" id="ctx-sum"></div>
+      </div>
+      <div class="ctx-btn-row">
+        <button class="btn btn-g" id="ctx-btn" style="font-size:13px;padding:10px 16px;margin:0;" onclick="buildCtx()">✦ Build AI context from my profile</button>
+      </div>
+
+      <!-- Personal details -->
+      <div class="psec">
+        <div class="psec-lbl">Personal details</div>
+        <div class="prow" onclick="openMo('mo-edit')">
+          <div class="pic" style="background:var(--acc-l);">👤</div>
+          <div style="flex:1"><div class="plbl" id="pi-name">—</div><div class="pval">Full name</div></div>
+          <div class="parr">›</div>
+        </div>
+        <div class="prow nc">
+          <div class="pic" style="background:#EEF7EE;">📱</div>
+          <div style="flex:1"><div class="plbl" id="pi-phone">—</div><div class="pval">Mobile — used for all orders</div></div>
+        </div>
+        <div class="prow" onclick="openMo('mo-edit')">
+          <div class="pic" style="background:#FFF7E6;">📍</div>
+          <div style="flex:1"><div class="plbl" id="pi-addr" style="font-size:13px;">—</div><div class="pval">Home address — auto-filled in orders</div></div>
+          <div class="parr">›</div>
+        </div>
+        <div class="prow nc">
+          <div class="pic" style="background:#F0EAFF;">🏠</div>
+          <div style="flex:1"><div class="plbl" id="pi-htype">—</div><div class="pval">Home type</div></div>
+        </div>
+      </div>
+
+      <!-- Lifestyle -->
+      <div class="psec" style="margin-top:10px;">
+        <div class="psec-lbl">Lifestyle &amp; preferences</div>
+        <div class="prow" onclick="openMo('mo-edit')">
+          <div class="pic" style="background:#EEF7EE;">🌍</div>
+          <div style="flex:1"><div class="plbl" id="pi-country">India</div><div class="pval">Country</div></div>
+          <div class="parr">›</div>
+        </div>
+        <div class="prow" onclick="openMo('mo-edit')">
+          <div class="pic" style="background:#F0EAFF;">📌</div>
+          <div style="flex:1"><div class="plbl" id="pi-region">—</div><div class="pval">State / Region</div></div>
+          <div class="parr">›</div>
+        </div>
+        <div class="prow" onclick="openMo('mo-edit')">
+          <div class="pic" style="background:#FFF7E6;">🥗</div>
+          <div style="flex:1"><div class="plbl" id="pi-food">— Not set</div><div class="pval">Food preference</div></div>
+          <div class="parr">›</div>
+        </div>
+        <div class="prow" onclick="openMo('mo-edit')">
+          <div class="pic" style="background:#D5EDE9;">📝</div>
+          <div style="flex:1"><div class="plbl" id="pi-diet">—</div><div class="pval">Dietary notes &amp; restrictions</div></div>
+          <div class="parr">›</div>
+        </div>
+      </div>
+
+      <!-- Members -->
+      <div class="psec" style="margin-top:10px;">
+        <div class="psec-lbl">Household members</div>
+        <div id="prof-mbrs"></div>
+      </div>
+
+      <!-- Linked -->
+      <div class="psec" style="margin-top:10px;">
+        <div class="psec-lbl">Linked accounts</div>
+        <div id="prof-accs"></div>
+        <div style="padding:10px 16px;font-size:12px;color:var(--tx3);line-height:1.6;">🔒 We use OAuth. Passwords are never stored. Revoke anytime.</div>
+      </div>
+
+      <!-- Prefs -->
+      <div class="psec" style="margin-top:10px;">
+        <div class="psec-lbl">App preferences</div>
+        <div class="prow nc">
+          <div class="pic" style="background:#FFF7E6;">🔔</div>
+          <div style="flex:1"><div class="plbl">Notifications</div><div class="pval">AI alerts, order updates</div></div>
+          <label class="tgl"><input type="checkbox" checked><div class="tgl-t"></div><div class="tgl-k"></div></label>
+        </div>
+        <div class="prow nc">
+          <div class="pic" style="background:#EEF7EE;">🤖</div>
+          <div style="flex:1"><div class="plbl">Auto-confirm AI orders</div><div class="pval">Orders under ₹500 auto-placed</div></div>
+          <label class="tgl"><input type="checkbox"><div class="tgl-t"></div><div class="tgl-k"></div></label>
+        </div>
+        <div class="prow" onclick="doSignout()">
+          <div class="pic" style="background:var(--red-l);">🚪</div>
+          <div style="flex:1"><div class="plbl" style="color:var(--red);">Sign out</div></div>
+          <div class="parr">›</div>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="psec" style="margin-top:10px;">
+        <div class="psec-lbl">Task history</div>
+        <div id="hist"></div>
+      </div>
+
+      <div style="height:20px;"></div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- ── BOTTOM NAV — Swiggy-style SVG icons ── -->
+  <div class="bnav">
+    <div class="ni on" id="nav-home" onclick="navTo('home')">
+      <div class="ni-ico">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M3 10.5L11 3l8 7.5V19a1 1 0 01-1 1H4a1 1 0 01-1-1v-8.5z" stroke="#A09B94" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M8 20v-7h6v7" stroke="#A09B94" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="ni-lb">Home</div>
+    </div>
+    <div class="ni" id="nav-chat" onclick="navTo('chat')">
+      <div class="ni-ico">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4 4h14a1 1 0 011 1v9a1 1 0 01-1 1H7l-4 3V5a1 1 0 011-1z" stroke="#A09B94" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M8 9h6M8 12h4" stroke="#A09B94" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="ni-lb">My Manager</div>
+    </div>
+    <div class="ni" id="nav-profile" onclick="navTo('profile')">
+      <div class="ni-ico">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="8" r="3.5" stroke="#A09B94" stroke-width="1.6"/>
+          <path d="M3.5 19c0-4.142 3.358-7.5 7.5-7.5s7.5 3.358 7.5 7.5" stroke="#A09B94" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="ni-lb">Profile</div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ORDER MODAL -->
+<div class="mo" id="mo-ord">
+  <div class="ms">
+    <div class="mhnd"></div>
+    <div class="mt">Order groceries 🛒</div>
+    <div class="mb">
+
+      <!-- Instamart primary card -->
+      <div id="ord-instamart-card" style="background:linear-gradient(135deg,#FFF7EE,#FFF0DC);border:1.5px solid #F3820030;border-radius:12px;padding:14px;margin-bottom:13px;cursor:pointer;" onclick="selectInstamartMode()" >
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:#FC8019;display:flex;align-items:center;justify-content:center;font-size:16px;">🟠</div>
+            <div>
+              <div style="font-size:14px;font-weight:800;color:#1a1714;">Swiggy Instamart</div>
+              <div style="font-size:11px;color:#888;">AI checks items → cart → you confirm</div>
+            </div>
+          </div>
+          <div id="im-radio" style="width:20px;height:20px;border-radius:50%;border:2px solid #F38200;background:#F38200;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span style="padding:3px 8px;border-radius:5px;background:#F3820015;color:#F38200;font-size:11px;font-weight:700;">⚡ 10–20 min</span>
+          <span style="padding:3px 8px;border-radius:5px;background:#F3820015;color:#F38200;font-size:11px;font-weight:700;">🤖 AI-reviewed cart</span>
+          <span style="padding:3px 8px;border-radius:5px;background:#F3820015;color:#F38200;font-size:11px;font-weight:700;">📋 Deep link handoff</span>
+        </div>
+      </div>
+
+      <!-- Other platforms (compact) -->
+      <div class="fg"><label class="fl">Or choose another platform</label>
+        <div class="plats" id="ord-other-plats">
+          <div class="plat" onclick="selectOtherPlat(this)" data-p="Blinkit"><span style="font-size:17px;">🛵</span><span class="plat-nm">Blinkit</span></div>
+          <div class="plat" onclick="selectOtherPlat(this)" data-p="BigBasket"><span style="font-size:17px;">🥦</span><span class="plat-nm">BigBasket</span></div>
+          <div class="plat" onclick="selectOtherPlat(this)" data-p="Amazon Fresh"><span style="font-size:17px;">📦</span><span class="plat-nm">Amazon Fresh</span></div>
+        </div>
+      </div>
+
+      <!-- Hidden input for selected platform -->
+      <input type="hidden" id="ord-plat" value="Swiggy Instamart">
+
+      <div class="fg"><label class="fl">What do you need?</label>
+        <textarea class="fi" rows="3" id="ord-items" placeholder="e.g. Amul butter, Basmati rice 2kg, Tomatoes 500g, Organic broccoli…" style="resize:none;"></textarea>
+      </div>
+
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:11px 14px;margin-bottom:13px;display:flex;align-items:center;gap:9px;">
+        <svg width="13" height="15" viewBox="0 0 13 15" fill="none"><circle cx="6.5" cy="6" r="2.2" stroke="#C96A2E" stroke-width="1.3"/><path d="M6.5 1C4.02 1 2 3.02 2 5.5 2 9.16 6.5 14 6.5 14S11 9.16 11 5.5C11 3.02 8.98 1 6.5 1z" stroke="#C96A2E" stroke-width="1.3"/></svg>
+        <div><div style="font-size:13px;font-weight:600;" id="ord-addr">—</div><div style="font-size:12px;color:var(--tx2);">From your profile</div></div>
+      </div>
+
+      <div class="fg"><label class="fl">Schedule</label>
+        <div class="schrow"><div class="sc2 on" onclick="pickSch(this)">⚡ ASAP</div><div class="sc2" onclick="pickSch(this)">This evening</div><div class="sc2" onclick="pickSch(this)">Tomorrow</div></div>
+      </div>
+
+      <button class="btn btn-p" style="margin-top:6px;background:linear-gradient(135deg,#F38200,#FC8019);" onclick="submitOrd()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="white" stroke-width="1.3"/><path d="M4.5 7h5M7 4.5v5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Build Instamart cart with AI →
+      </button>
+      <button class="btn btn-g" onclick="closeMo('mo-ord')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE PICKER -->
+<div class="mo" id="mo-svc-pick">
+  <div class="ms">
+    <div class="mhnd"></div>
+    <div class="mt">Book a service 🔧</div>
+    <div class="mb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px;">
+        <div class="ecard" style="padding:14px 13px;" onclick="closeMo('mo-svc-pick');openSvc('plumber')"><div class="ecard-ico" style="background:#FFF7E6;width:34px;height:34px;border-radius:8px;font-size:17px;margin-bottom:9px;">🔧</div><div class="ecard-t" style="font-size:13px;">Plumber</div></div>
+        <div class="ecard" style="padding:14px 13px;" onclick="closeMo('mo-svc-pick');openSvc('electrician')"><div class="ecard-ico" style="background:#E8F2FF;width:34px;height:34px;border-radius:8px;font-size:17px;margin-bottom:9px;">⚡</div><div class="ecard-t" style="font-size:13px;">Electrician</div></div>
+        <div class="ecard" style="padding:14px 13px;" onclick="closeMo('mo-svc-pick');openSvc('cleaning')"><div class="ecard-ico" style="background:#EEF7EE;width:34px;height:34px;border-radius:8px;font-size:17px;margin-bottom:9px;">🧹</div><div class="ecard-t" style="font-size:13px;">Deep clean</div></div>
+        <div class="ecard" style="padding:14px 13px;" onclick="closeMo('mo-svc-pick');openSvc('ac')"><div class="ecard-ico" style="background:#D5EDE9;width:34px;height:34px;border-radius:8px;font-size:17px;margin-bottom:9px;">❄️</div><div class="ecard-t" style="font-size:13px;">AC service</div></div>
+        <div class="ecard" style="padding:14px 13px;" onclick="closeMo('mo-svc-pick');openSvc('carpenter')"><div class="ecard-ico" style="background:#F5EDD0;width:34px;height:34px;border-radius:8px;font-size:17px;margin-bottom:9px;">🪚</div><div class="ecard-t" style="font-size:13px;">Carpenter</div></div>
+        <div class="ecard" style="padding:14px 13px;" onclick="closeMo('mo-svc-pick');openSvc('painter')"><div class="ecard-ico" style="background:#F0EAFF;width:34px;height:34px;border-radius:8px;font-size:17px;margin-bottom:9px;">🖌️</div><div class="ecard-t" style="font-size:13px;">Painter</div></div>
+      </div>
+      <button class="btn btn-g" onclick="closeMo('mo-svc-pick')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE BOOKING -->
+<div class="mo" id="mo-svc">
+  <div class="ms">
+    <div class="mhnd"></div>
+    <div class="mt" id="svc-title">Book service</div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Describe the issue</label><textarea class="fi" rows="3" id="svc-desc" placeholder="e.g. Fan stopped working, wiring issue…" style="resize:none;"></textarea></div>
+      <div class="fg"><label class="fl">When?</label>
+        <div class="schrow"><div class="sc2" onclick="pickSch(this)">Today</div><div class="sc2 on" onclick="pickSch(this)">Tomorrow</div><div class="sc2" onclick="pickSch(this)">This weekend</div></div>
+      </div>
+      <div class="fg"><label class="fl">Time slot</label>
+        <div class="schrow"><div class="sc2 on" onclick="pickSch(this)">9–11 AM</div><div class="sc2" onclick="pickSch(this)">11 AM–1 PM</div><div class="sc2" onclick="pickSch(this)">2–4 PM</div><div class="sc2" onclick="pickSch(this)">4–6 PM</div></div>
+      </div>
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:11px 14px;margin-bottom:18px;display:flex;align-items:center;gap:9px;"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="5.5" r="2" stroke="#C96A2E" stroke-width="1.3"/><path d="M6.5 1C4.3 1 2.5 2.8 2.5 5s4 8 4 8 4-5.8 4-8c0-2.2-1.8-4-4-4z" stroke="#C96A2E" stroke-width="1.3"/></svg><div><div style="font-size:13px;font-weight:600;" id="svc-addr">—</div><div style="font-size:12px;color:var(--tx2);">From your profile</div></div></div>
+      <button class="btn btn-p" onclick="submitSvc()">Confirm booking via AI →</button>
+      <button class="btn btn-g" onclick="closeMo('mo-svc')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="mo" id="mo-edit">
+  <div class="ms">
+    <div class="mhnd"></div>
+    <div class="mt">Edit profile</div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Country</label>
+        <select class="fi-sel" id="ep-country" onchange="saveMeta()">
+          <option value="India">🇮🇳 India</option>
+          <option value="USA">🇺🇸 United States</option>
+          <option value="UK">🇬🇧 United Kingdom</option>
+          <option value="UAE">🇦🇪 UAE</option>
+          <option value="Singapore">🇸🇬 Singapore</option>
+          <option value="Australia">🇦🇺 Australia</option>
+          <option value="Canada">🇨🇦 Canada</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">State / Region</label>
+        <select class="fi-sel" id="ep-region" onchange="saveMeta()">
+          <option value="">Select state</option>
+          <option>Karnataka</option><option>Maharashtra</option><option>Delhi NCR</option>
+          <option>Tamil Nadu</option><option>Telangana</option><option>Gujarat</option>
+          <option>Rajasthan</option><option>Kerala</option><option>West Bengal</option>
+          <option>Uttar Pradesh</option><option>Madhya Pradesh</option><option>Punjab</option>
+          <option>Haryana</option><option>Odisha</option><option>Other</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Food preference</label>
+        <div class="pchips" id="food-chips">
+          <div class="pchip" data-v="vegetarian"     onclick="pickFood(this)">🌿 Vegetarian</div>
+          <div class="pchip" data-v="non-vegetarian" onclick="pickFood(this)">🍖 Non-vegetarian</div>
+          <div class="pchip" data-v="eggetarian"     onclick="pickFood(this)">🥚 Eggetarian</div>
+          <div class="pchip" data-v="vegan"          onclick="pickFood(this)">🌱 Vegan</div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Dietary notes <span style="font-weight:400;color:var(--tx3);">(optional)</span></label>
+        <input class="fi" type="text" id="ep-diet" placeholder="e.g. Gluten-free, diabetic, nut allergy…" oninput="saveMetaDebounced()">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <span style="font-size:12px;color:var(--tx3);">Changes save automatically</span>
+        <span class="sync sync-ok" id="sync-badge">✓ Saved</span>
+      </div>
+      <button class="btn btn-p" onclick="closeMo('mo-edit')">Done</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
