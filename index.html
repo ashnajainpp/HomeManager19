@@ -80,7 +80,7 @@ button,input,textarea,select{font-family:var(--ff);}
 .feat-s{font-size:12px;color:var(--tx3);line-height:1.45;}
 
 /* ── APP SHELL ── */
-#app{display:none;height:100vh;flex-direction:column;}
+#app{display:none;height:100vh;height:100dvh;flex-direction:column;}
 #app.on{display:flex;}
 .hdr{height:var(--hh);flex-shrink:0;display:flex;align-items:center;padding:0 20px;background:rgba(250,250,248,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);}
 .hdr-brand{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--tx);letter-spacing:-.3px;flex:1;}
@@ -464,6 +464,57 @@ var STORE = {
   }
 };
 
+/* ── API KEY MANAGEMENT ──────────────────────────────────────
+   On GitHub Pages / self-hosted, the Anthropic API key must be
+   provided by the user. We store it in localStorage under
+   'HM_API_KEY'. The Claude artifact environment injects auth
+   automatically, so the key check is skipped there.
+─────────────────────────────────────────────────────────────── */
+STORE.apiHeaders = function(){
+  var base = {
+    'Content-Type': 'application/json',
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true'
+  };
+  var key = STORE.getApiKey();
+  if(key) base['x-api-key'] = key;
+  return base;
+};
+
+STORE.getApiKey = function(){
+  try { return localStorage.getItem('HM_API_KEY') || ''; } catch(e){ return ''; }
+};
+
+STORE.saveApiKey = function(key){
+  try { localStorage.setItem('HM_API_KEY', key.trim()); } catch(e){}
+};
+
+STORE.promptApiKey = function(){
+  var existing = STORE.getApiKey();
+  var key = window.prompt(
+    'Enter your Anthropic API key to enable AI features.\n\n' +
+    'Get one at: https://console.anthropic.com\n\n' +
+    'Your key is saved in this browser only.',
+    existing || 'sk-ant-...'
+  );
+  if(key && key.startsWith('sk-ant-')){
+    STORE.saveApiKey(key);
+    toast('API key saved ✓ — AI features enabled');
+    return key;
+  } else if(key !== null){
+    toast('Invalid key format — should start with sk-ant-');
+  }
+  return existing;
+};
+
+/* Check if running in Claude artifact environment (no key needed) */
+STORE.isArtifactEnv = function(){
+  return typeof window !== 'undefined' &&
+    window.storage &&
+    typeof window.storage.set === 'function';
+};
+
+
 /* ─── STATE ────────────────────────────────────────────── */
 var S = {
   user: null,            /* {name, phone, initials} */
@@ -617,6 +668,7 @@ async function loadUser(phone){
 
 /* ─── AI CONTEXT ─────────────────────────────────────────── */
 async function buildCtx(){
+  if(!ensureApiKey()) return;
   var btn=$('ctx-btn'); if(btn){ btn.disabled=true; btn.textContent='Building…'; }
   var u=S.user||{}, h=S.home||{}, m=S.meta||{};
   var txt =
@@ -629,7 +681,7 @@ async function buildCtx(){
     '\nChat:'+(S.chatHistory.slice(-6).map(function(x){return x.role+':'+x.content;}).join('|'));
   try{
     var r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: STORE.apiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:350,
         messages:[{role:'user',content:'Analyse household profile. Reply ONLY valid JSON:\n{"tags":["tag1"],"summary":"2-3 warm sentences"}\nMax 7 specific tags.\n\nDATA:\n'+txt}]})});
     var data=await r.json();
@@ -1040,7 +1092,7 @@ function navTo(tab){
   var sc=$('tab-'+tab); if(sc) sc.classList.add('on');
   var ni=$('nav-'+tab); if(ni) ni.classList.add('on');
   if(tab==='chat')    setTimeout(function(){ var c=$('chat-msgs'); if(c) c.scrollTop=c.scrollHeight; },80);
-  if(tab==='profile') setTimeout(refreshStorageStatus, 200);
+  if(tab==='profile'){ setTimeout(refreshStorageStatus, 200); setTimeout(refreshApiKeyStatus, 210); }
 }
 
 /* ─── MODALS ─────────────────────────────────────────────────── */
@@ -1075,6 +1127,19 @@ document.addEventListener('DOMContentLoaded', function(){
   $('pg-welcome').classList.add('active');
   $('app').style.display='none';
   $('auth').classList.remove('hidden');
+
+  /* Fix for mobile browser chrome eating into 100vh */
+  function fixViewportHeight(){
+    var vh = window.innerHeight;
+    document.documentElement.style.setProperty('--vh', vh + 'px');
+    var app = $('app');
+    if(app) app.style.height = vh + 'px';
+    var auth = $('auth');
+    if(auth) auth.style.height = vh + 'px';
+  }
+  fixViewportHeight();
+  window.addEventListener('resize', fixViewportHeight);
+  window.addEventListener('orientationchange', function(){ setTimeout(fixViewportHeight, 200); });
 });
 function pickPlat(el){ el.closest('.plats').querySelectorAll('.plat').forEach(function(c){ c.classList.remove('on'); }); el.classList.add('on'); }
 function pickSch(el) { el.parentElement.querySelectorAll('.sc2').forEach(function(c){ c.classList.remove('on'); }); el.classList.add('on'); }
@@ -1117,6 +1182,7 @@ function submitSvc(){
 
 /* ─── INSTAMART DEEP LINK ───────────────────────────────────── */
 async function launchInstamartFlow(rawText){
+  if(!ensureApiKey()) return;
   addMsg('user','Order from Swiggy Instamart: '+rawText);
   S.chatHistory.push({role:'user',content:'Order from Swiggy Instamart: '+rawText});
   var pe=document.createElement('div'); pe.className='mrow ai'; pe.id='im-parse-row';
@@ -1127,7 +1193,7 @@ async function launchInstamartFlow(rawText){
   var sys='Parse grocery request into structured items.'+(m.foodPref?' Food preference: '+m.foodPref+'. ':'')+
     'Reply ONLY valid JSON:\n{"items":[{"name":"Amul Butter","qty":"1","unit":"pack","emoji":"🧈","estPrice":65,"searchQuery":"amul butter"},...],"totalEst":320,"greeting":"One line message"}';
   try{
-    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers: STORE.apiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:sys,messages:[{role:'user',content:'Parse: '+rawText}]})});
     var d=await r.json();
     var raw=(d.content||[]).map(function(b){return b.type==='text'?b.text:'';}).join('').trim();
@@ -1302,6 +1368,7 @@ function buildSysPrompt(){
 
 async function sendChat(){
   var inp=$('ci'), msg=inp.value.trim(); if(!msg) return;
+  if(!ensureApiKey()) return;
   inp.value=''; inp.style.height='auto';
   addMsg('user', msg);
   S.chatHistory.push({role:'user', content:msg});
@@ -1324,7 +1391,7 @@ async function sendChat(){
 
     var r = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers: STORE.apiHeaders(),
       body: JSON.stringify({
         model:  'claude-sonnet-4-20250514',
         max_tokens: 900,
@@ -1478,6 +1545,43 @@ function finishPrefsAndLaunch(){
 function skipPrefsAndLaunch(){
   finishSetup();
 }
+
+/* ── API KEY UI ─────────────────────────────────────────────── */
+function handleApiKeyTap(){
+  if(STORE.isArtifactEnv()){
+    toast('Running inside Claude — API key not needed here');
+    return;
+  }
+  STORE.promptApiKey();
+  refreshApiKeyStatus();
+}
+
+function refreshApiKeyStatus(){
+  var el = $('apikey-status'); if(!el) return;
+  if(STORE.isArtifactEnv()){
+    el.textContent = 'Auto-managed (Claude environment)';
+    return;
+  }
+  var key = STORE.getApiKey();
+  if(key && key.startsWith('sk-ant-')){
+    el.textContent = 'Set ✓ — AI features enabled';
+    el.style.color = 'var(--green)';
+  } else {
+    el.textContent = 'Not set — tap to add key and enable AI';
+    el.style.color = 'var(--red)';
+  }
+}
+
+/* ── Check key on every API call, prompt if missing ─────────── */
+function ensureApiKey(){
+  if(STORE.isArtifactEnv()) return true;
+  var key = STORE.getApiKey();
+  if(key && key.startsWith('sk-ant-')) return true;
+  toast('Add your Anthropic API key in Profile → App preferences to enable AI');
+  setTimeout(function(){ STORE.promptApiKey(); refreshApiKeyStatus(); }, 600);
+  return false;
+}
+
 </script>
 
 </head>
@@ -1910,6 +2014,11 @@ function skipPrefsAndLaunch(){
         <div class="psec-lbl">App preferences</div>
         <div class="prow nc"><div class="pic" style="background:#FFF7E6;">🔔</div><div style="flex:1"><div class="plbl">Notifications</div><div class="pval">AI alerts, order updates</div></div><label class="tgl"><input type="checkbox" checked><div class="tgl-t"></div><div class="tgl-k"></div></label></div>
         <div class="prow nc"><div class="pic" style="background:#EEF7EE;">🤖</div><div style="flex:1"><div class="plbl">Auto-confirm AI orders</div><div class="pval">Orders under ₹500 auto-placed</div></div><label class="tgl"><input type="checkbox"><div class="tgl-t"></div><div class="tgl-k"></div></label></div>
+        <div class="prow" id="prow-apikey" onclick="handleApiKeyTap()">
+          <div class="pic" style="background:#F0EBFF;">🔑</div>
+          <div style="flex:1"><div class="plbl">AI API key</div><div class="pval" id="apikey-status">Checking…</div></div>
+          <div class="parr">›</div>
+        </div>
         <div class="prow" onclick="doSignout()"><div class="pic" style="background:var(--red-l);">🚪</div><div style="flex:1"><div class="plbl" style="color:var(--red);">Sign out</div></div><div class="parr">›</div></div>
       </div>
 
